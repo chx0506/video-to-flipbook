@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "title": "手冲咖啡入门 · 三步出好味",
+    "enTitle": "Pour-Over Coffee Basics",
+    "subtitle": "不玩玄学 · 抓住研磨 / 水温 / 节奏三个变量就够了",
+    "theme": "building",
+    "hint": "点击器具光点看每一步要点，详情内可调人数算配比",
+    "footer": "好咖啡不靠贵设备，靠稳定的手法与耐心",
+    "sourceVideo": {
+      "title": "手冲咖啡新手教程",
+      "url": "https://www.example-video.com/watch?v=pourover",
+      "duration": "04:20",
+      "author": "咖啡日记"
+    }
+  },
+  "overview": {
+    "imagePrompt": "a neat flat-lay of pour-over coffee equipment on a wooden table: a gooseneck kettle, a ceramic V60 dripper on a glass carafe, a hand grinder, a bag of coffee beans and a digital scale",
+    "factsTitle": "BREW · 冲煮档案",
+    "factsSide": "left",
+    "facts": [
+      {"k": "粉水比", "v": "1 : 15"},
+      {"k": "水温", "v": "88–92°C"},
+      {"k": "研磨度", "v": "中细 · 砂糖感"},
+      {"k": "总时长", "v": "2:30 左右"}
+    ],
+    "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/505d8a9bb95c46b0be1e4d286d09ce4a.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=OAitocIjhekUZKlmuCXQIbLD6WY%3D",
+    "widget": {
+      "type": "recipe",
+      "title": "配比计算器 · 按杯数自动换算",
+      "subtitle": "改一下杯数，咖啡粉与水量自动按 1:15 换算；勾选“我已有”从采购清单剔除",
+      "button": "算一下我要买多少",
+      "baseServings": 1,
+      "hint": "基准为 1 杯（15g 粉 / 225g 水）。改人数后所有用量按比例缩放，方便一次冲多杯。",
+      "ingredients": [
+        {"name": "咖啡豆", "qty": 15, "unit": "g"},
+        {"name": "热水（88–92°C）", "qty": 225, "unit": "g"},
+        {"name": "V60 滤纸", "qty": 1, "unit": "张"}
+      ]
+    }
+  },
+  "cards": [
+    {
+      "x": 28, "y": 40, "label": "研磨 · 定粗细",
+      "tag": "STEP 1 · 研磨", "name": "研磨：先定粗细", "en": "Grind",
+      "imagePrompt": "a hand grinder pouring freshly ground coffee onto a small scale, medium-fine grounds like fine sand, warm morning light",
+      "desc": "现磨现冲最香。手冲用中细研磨，颗粒像细砂糖。太细会堵、发苦；太粗则寡淡不出味。",
+      "meta": [["研磨度","中细"],["手感","砂糖感"],["原则","现磨现冲"]],
+      "note": "先固定研磨，再调其它变量",
+      "annotations": [
+        {"t": "磨豆机", "d": "调到中细档，先磨一点点试手感", "ax": 32, "ay": 28, "side": "right"},
+        {"t": "咖啡粉", "d": "颗粒像细砂糖，分明不结块", "ax": 60, "ay": 55, "side": "right"},
+        {"t": "电子秤", "d": "单杯 15g，别凭感觉称量", "ax": 46, "ay": 80, "side": "left"}
+      ],
+      "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/72b654226c8b44049993df4655dd0fe7.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=n33UqGc9ljreFjkE5vtottLwycw%3D",
+      "body": [
+        {"h": "为什么研磨是第一变量", "type": "para", "text": ["手冲的味道 70% 由研磨度决定。太细，水流被堵住、萃取过度，喝起来又苦又涩；太粗，水一冲而过，萃取不足，寡淡发酸。", "先把研磨度固定在一个稳定档位，再去微调水温和节奏，才能排除干扰、找到问题。"]},
+        {"h": "怎么判断粗细", "type": "table", "rows": [["目标手感", "像细砂糖，颗粒分明不结块"],["偏细信号", "滴滤很慢、口感苦涩→调粗一点"],["偏粗信号", "水一下漏光、口感寡淡酸→调细一点"]]}
+      ],
+      "widget": {
+        "type": "stepper",
+        "title": "研磨分步操作",
+        "steps": [
+          {"title": "称豆", "detail": "按目标杯数称咖啡豆，单杯 15g。", "tip": "用电子秤，别凭感觉"},
+          {"title": "设定档位", "detail": "磨豆机调到中细档，磨一点点先试手感。", "tip": "细砂糖感是基准"},
+          {"title": "现磨现冲", "detail": "开冲前才磨，磨好后 5 分钟内使用，风味最足。", "tip": "磨好久放会跑香"}
+        ]
+      }
+    },
+    {
+      "x": 55, "y": 58, "label": "闷蒸 · 唤醒粉层",
+      "tag": "STEP 2 · 闷蒸", "name": "闷蒸：让咖啡呼吸", "en": "Bloom",
+      "imagePrompt": "hot water being poured in a spiral onto coffee grounds in a V60 dripper, the coffee bed swelling and bubbling during bloom, steam rising",
+      "desc": "注入两倍于粉重的热水，从中心向外画圈打湿全部粉层，静待 30 秒。粉层鼓起排气，是新鲜的信号。",
+      "meta": [["水量","约 2 倍粉重"],["时间","30 秒"],["动作","中心向外画圈"]],
+      "note": "闷蒸鼓包越明显，豆子越新鲜",
+      "annotations": [
+        {"t": "细水流", "d": "缓慢注入约 2 倍粉重的热水", "ax": 40, "ay": 22, "side": "left"},
+        {"t": "鼓包排气", "d": "粉层膨胀冒泡，是新鲜的信号", "ax": 55, "ay": 52, "side": "right"},
+        {"t": "V60 滤杯", "d": "螺纹肋骨引导水流均匀下渗", "ax": 50, "ay": 82, "side": "left"}
+      ],
+      "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/96346133d17b44c9adaab508b18e8c51.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=tSJblNnumW7tE0GG8oc4MzWv3VQ%3D",
+      "body": [
+        {"h": "闷蒸在做什么", "type": "para", "text": ["新鲜咖啡粉里含有大量二氧化碳。第一次少量注水，让粉层充分吸水、排出气体，后续萃取才能均匀，这个过程叫闷蒸（Bloom）。"]},
+        {"h": "关键动作", "type": "list", "items": ["水量约为粉重的 2 倍（15g 粉→30g 水）", "从中心向外画圈，确保打湿全部干粉", "静置约 30 秒，观察粉层鼓包排气", "鼓包越明显，说明豆子越新鲜"]}
+      ],
+      "widget": {
+        "type": "stepper",
+        "title": "闷蒸分步操作",
+        "steps": [
+          {"title": "注入两倍水", "detail": "缓慢注入约 2 倍粉重的热水。", "tip": "别一下倒太多"},
+          {"title": "画圈打湿", "detail": "从中心螺旋向外，让每一处干粉都吸到水。", "tip": "边缘别冲到滤纸"},
+          {"title": "静待 30 秒", "detail": "停手观察粉层膨胀鼓包，等待排气完成。", "tip": "计时更稳定"}
+        ]
+      }
+    },
+    {
+      "x": 74, "y": 34, "label": "分段注水 · 控节奏",
+      "tag": "STEP 3 · 注水", "name": "注水：稳住节奏", "en": "Pour",
+      "imagePrompt": "a gooseneck kettle pouring a thin steady stream of water in concentric circles over a coffee dripper, coffee dripping into a clear glass carafe below",
+      "desc": "分两到三段注水，始终细水流、匀速画圈，避免冲刷滤纸边缘。全程控制在 2 分 30 秒左右完成。",
+      "meta": [["水流","细 · 匀速"],["段数","2–3 段"],["总时长","约 2:30"]],
+      "note": "宁可慢一点，也别忽快忽慢",
+      "annotations": [
+        {"t": "鹅颈壶", "d": "细长壶嘴，精准控制水流粗细", "ax": 34, "ay": 24, "side": "left"},
+        {"t": "螺旋画圈", "d": "从中心向外匀速绕圈，别冲边缘", "ax": 56, "ay": 46, "side": "right"},
+        {"t": "分享壶", "d": "透明壶身方便观察萃取量与时间", "ax": 52, "ay": 82, "side": "right"}
+      ],
+      "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/cf0b062672c74f49981c0c102f4842d1.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=OQIN3g3xY5LGJSlT64I217V59Uo%3D",
+      "body": [
+        {"h": "节奏比水量更重要", "type": "para", "text": ["闷蒸结束后分 2–3 段注水，每段都用细水流、匀速螺旋画圈。稳定的节奏能让萃取均匀，避免一部分过萃、一部分萃取不足。"]},
+        {"h": "常见翻车点", "type": "tips", "items": ["水流忽快忽慢→味道层次乱，尽量匀速", "直冲滤纸边缘→水绕过粉层，萃取不足", "总时长过久（>3 分钟）→过萃发苦", "壶嘴离粉面太高→水柱砸乱粉层"]}
+      ],
+      "widget": {
+        "type": "stepper",
+        "title": "注水分步操作",
+        "steps": [
+          {"title": "第一段", "detail": "闷蒸后注水至总量约一半，螺旋向外。", "tip": "细水流、匀速"},
+          {"title": "第二段", "detail": "水位下降后补第二段，接近目标总量。", "tip": "别冲边缘"},
+          {"title": "收尾", "detail": "补足至目标水量，等待滴滤完成，全程约 2:30。", "tip": "移走滤杯别滴干"}
+        ]
+      }
+    }
+  ]
+}

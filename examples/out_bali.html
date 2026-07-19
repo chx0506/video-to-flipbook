@@ -1,0 +1,3620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
+<title>Flipbook · 交互图鉴</title>
+<style>
+  /* ===== 默认主题变量（可被 data-theme 覆盖）===== */
+  :root{
+    --paper:#f6f1e6;--ink:#33352c;--muted:#82867a;--line:#cdd6c2;
+    --accent:#2f6f8f;--sage:#7f9a6f;--bg1:#f6f1e6;--bg2:#e2e8dc;--stage:#dfe6da;
+    --topbar-h:59px;
+    --safe-top:env(safe-area-inset-top,0px);
+    --safe-bottom:env(safe-area-inset-bottom,0px);
+  }
+  body[data-theme="building"]{
+    --accent:#b5623a;--sage:#8a9a76;--line:#d9cfbc;--bg2:#e9e1d2;--stage:#e9e1d2;--muted:#8a8272;
+  }
+  body[data-theme="art"]{
+    --accent:#7a5c9e;--sage:#9e7c8c;--line:#ddd0dd;--bg2:#e8e0ec;--stage:#e5ddec;--muted:#87808f;
+  }
+  body[data-theme="dark"]{
+    --paper:#232a2e;--ink:#eee7d8;--muted:#9aa39a;--line:#3a444a;
+    --accent:#e0a24a;--sage:#7f9a6f;--bg1:#232a2e;--bg2:#1a2024;--stage:#161b1e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;height:100dvh}
+  body{font-family:"Songti SC","STSong",Georgia,"Times New Roman",serif;background:var(--stage);color:var(--ink);-webkit-font-smoothing:antialiased;overflow:hidden;touch-action:manipulation}
+
+  .topbar{display:flex;align-items:center;gap:12px;padding:12px 18px;padding-top:max(12px,var(--safe-top));background:color-mix(in srgb,var(--paper) 88%,#fff);border-bottom:1px solid var(--line);position:relative;z-index:50}
+  .dots{display:flex;gap:7px}
+  .dots i{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--line);display:block}
+  .crumb{flex:1;display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--paper) 40%,#fff);border:1.5px solid var(--line);border-radius:22px;padding:9px 18px;font-size:15px;color:var(--ink);overflow:hidden;white-space:nowrap}
+  .crumb .sep{color:var(--muted);opacity:.6}
+  .crumb .path-item{cursor:pointer;transition:color .2s}
+  .crumb .path-item:hover{color:var(--accent)}
+  .crumb .dim{color:var(--muted)}
+  .clear-btn{background:var(--ink);color:var(--paper);border:none;border-radius:20px;padding:9px 22px;font-size:14px;cursor:pointer;font-family:inherit}
+
+  .stage{position:relative;height:calc(100dvh - var(--topbar-h) - var(--safe-top));width:100%;overflow:hidden;background:radial-gradient(circle at 50% 30%,var(--bg1),var(--bg2))}
+  .scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:20px 20px max(40px,calc(24px + var(--safe-bottom)));opacity:0;pointer-events:none;transform:scale(1.04);transition:opacity .5s ease,transform .5s ease}
+  .scene.active{opacity:1;pointer-events:auto;transform:scale(1)}
+  .scene.zoomed-out{transform:scale(.7);opacity:0}
+  #scene-home{justify-content:center}
+  .scene-title{font-size:30px;font-weight:600;letter-spacing:3px;margin-bottom:2px;text-align:center}
+  .scene-sub{font-size:13px;color:var(--muted);letter-spacing:1px;margin-bottom:14px;text-align:center;max-width:80%}
+
+  .canvas{position:relative;flex:1;width:100%;max-width:1040px;display:flex;align-items:center;justify-content:center;min-height:0}
+  /* 地图舞台：尺寸贴合插画，热点百分比相对图片而非整块 canvas */
+  .map-stage{position:relative;display:inline-block;max-width:100%;max-height:100%;line-height:0;vertical-align:middle}
+  .map-stage img.main{display:block;max-height:100%;max-width:100%;width:auto;height:auto;object-fit:contain;filter:drop-shadow(0 12px 24px rgba(50,50,40,.14))}
+  .facts-slot{display:none;width:100%;max-width:420px;margin:0 auto;padding:0 2px}
+  .home-dock{position:absolute;left:0;right:0;bottom:0;z-index:20;pointer-events:none;display:flex;align-items:flex-end;justify-content:center;gap:10px;padding:0 16px max(14px,var(--safe-bottom))}
+  .home-dock:has(#toolsBtn[style*="flex"]){justify-content:space-between}
+  .home-dock .tools-btn,.home-dock .footer-note{pointer-events:auto}
+
+  /* 首页点击热点 → 镜头向该地标推进 */
+  .map-stage{transition:transform .55s cubic-bezier(.5,0,.78,0),opacity .45s ease}
+  .map-stage.pushing{transform:scale(2.7);opacity:0}
+
+  .hotspot{position:absolute;width:22px;height:22px;margin-left:-11px;margin-top:-11px;border-radius:50%;background:color-mix(in srgb,var(--accent) 16%,transparent);border:1.5px solid var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .2s,background .2s;z-index:10;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  /* 扩大可点区域，视觉圆圈保持小 */
+  .hotspot::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  .hotspot::before{content:"";position:absolute;inset:-14px;border-radius:50%;border:0;background:transparent;animation:none}
+  .hotspot .ping{position:absolute;inset:-5px;border-radius:50%;border:1.2px solid var(--accent);opacity:.45;animation:ping 2s infinite;pointer-events:none}
+  @keyframes ping{0%{transform:scale(1);opacity:.45}70%,100%{transform:scale(1.55);opacity:0}}
+  .hotspot:hover{transform:scale(1.2)}
+  .hotspot .tip{position:absolute;top:auto;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:4px 9px;border-radius:8px;font-size:12px;line-height:1.3;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s;font-family:inherit;max-width:none;overflow:visible;box-shadow:0 4px 12px rgba(0,0,0,.18);z-index:12}
+  .hotspot:hover .tip,.hotspot:focus-visible .tip{opacity:1}
+  .hotspot.tip-left .tip{left:auto;right:-4px;transform:none}
+  .hotspot.tip-right .tip{left:-4px;right:auto;transform:none}
+  .hotspot.tip-below .tip{top:calc(100% + 7px);bottom:auto}
+
+  .factsheet{position:absolute;top:50%;transform:translateY(-50%);width:236px;background:color-mix(in srgb,var(--paper) 55%,#fff);border:1px solid var(--line);border-radius:14px;padding:20px 22px;z-index:5;backdrop-filter:blur(8px)}
+  .factsheet.left{left:3%}.factsheet.right{right:3%}
+  .factsheet h4{font-size:13px;letter-spacing:2px;color:var(--accent);margin-bottom:12px;font-weight:600}
+  .factsheet .row{display:flex;justify-content:space-between;font-size:14px;padding:7px 0;border-bottom:1px dashed var(--line);gap:10px}
+  .factsheet .row:last-child{border:none}
+  .factsheet .row .k{color:var(--muted);white-space:nowrap}
+  .factsheet .row .v{font-weight:600;text-align:right}
+
+  .footer-note{background:var(--ink);color:var(--paper);padding:9px 18px;border-radius:22px;font-size:13px;letter-spacing:1px;max-width:min(58%,280px);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* ===== 首页工具按钮（打开总览级组件：路线规划 / 时间轴）===== */
+  .tools-btn{display:flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border:none;padding:10px 18px;border-radius:22px;cursor:pointer;font-family:inherit;font-size:14px;box-shadow:0 6px 16px rgba(50,50,40,.18);flex:none}
+  .tools-btn:hover{filter:brightness(1.05)}
+
+  /* ===== 详情页：可滚动的富内容布局 ===== */
+  #scene-detail{padding:0}
+  .detail-scroll{width:100%;height:100%;overflow-y:auto;padding:64px 22px 60px;display:flex;flex-direction:column;align-items:center}
+  .detail-scroll::-webkit-scrollbar{width:9px}
+  .detail-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
+  .detail-inner{width:100%;max-width:1080px}
+
+  /* ===== 详情页 = 图解（插画 + 引线标注），学习参考图效果 ===== */
+  .diagram-head{text-align:center;margin-bottom:16px}
+  .diagram-head .tag{display:inline-block;background:var(--sage);color:#fff;font-size:12px;padding:3px 14px;border-radius:20px;letter-spacing:2px;margin-bottom:10px}
+  .diagram-head h2{font-size:28px;letter-spacing:1px}
+  .diagram-head .en{color:var(--muted);font-size:13px;letter-spacing:1px;margin-top:3px}
+
+  /* 图解舞台：整幅插画居中显示，两侧留白供标注卡驻留（对齐参考图效果） */
+  .diagram-stage{position:relative;width:100%;max-width:960px;margin:0 auto;padding:10px 200px;box-sizing:border-box}
+  .diagram{position:relative;width:fit-content;max-width:100%;margin:0 auto;border-radius:18px;background:color-mix(in srgb,var(--paper) 70%,#fff);border:1px solid var(--line);box-shadow:0 14px 34px rgba(50,50,40,.14)}
+  .diagram-img{display:block;max-width:100%;max-height:58vh;width:auto;height:auto;border-radius:18px}
+
+  /* 标注气泡（浮在插画外侧留白区）+ 引线（核心「图解」效果） */
+  @keyframes annoIn{from{opacity:0}to{opacity:1}}
+  .anno{position:absolute;z-index:6;width:180px;opacity:0}
+  .anno.side-right{left:100%;margin-left:16px;transform:translateY(-50%)}
+  .anno.side-left{right:100%;margin-right:16px;transform:translateY(-50%)}
+  .diagram.entered .anno{animation:annoIn .55s ease forwards}
+  .anno .card{background:color-mix(in srgb,var(--paper) 96%,#fff);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:9px 13px;box-shadow:0 6px 18px rgba(50,50,40,.20)}
+  .anno.side-left .card{border-left:none;border-right:3px solid var(--accent);text-align:right}
+  .anno .card .at{font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:2px;letter-spacing:.5px}
+  .anno .card .ad{font-size:12px;line-height:1.5;color:var(--muted)}
+  .dot{position:absolute;width:13px;height:13px;border-radius:50%;background:var(--accent);border:2.5px solid var(--paper);box-shadow:0 0 0 2px var(--accent),0 2px 6px rgba(0,0,0,.3);z-index:8;opacity:0;transform:translate(-50%,-50%)}
+  .diagram.entered .dot{animation:annoIn .45s ease forwards}
+  svg.leaders{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:5}
+  svg.leaders line{stroke:var(--accent);stroke-width:1.6;stroke-dasharray:5 4;opacity:0}
+  .diagram.entered svg.leaders line{animation:annoIn .55s ease forwards;opacity:.9}
+  .diagram-hint{position:absolute;left:14px;bottom:12px;z-index:8;font-size:12px;color:var(--muted);background:color-mix(in srgb,var(--paper) 85%,#fff);border:1px solid var(--line);border-radius:20px;padding:4px 12px}
+  .detail-split{width:100%;max-width:960px;margin:0 auto}
+  .detail-rail{display:none}
+
+  /* 窄屏 / APP：左图右文两栏，去掉图上标注 */
+  @media(max-width:860px){
+    .detail-split.split-on{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      align-items:stretch;
+      max-width:100%;
+    }
+    .detail-split.split-on .diagram-stage{
+      padding:0;max-width:none;margin:0;min-width:0;
+    }
+    .detail-split.split-on .diagram{
+      width:100%;height:100%;
+      border-radius:14px;
+      overflow:hidden;
+    }
+    .detail-split.split-on .diagram-img{
+      width:100%;height:100%;
+      max-height:min(46dvh,340px);
+      object-fit:cover;
+      border-radius:14px;
+    }
+    .anno,svg.leaders,.dot,.diagram-hint{display:none!important}
+    .detail-rail{
+      display:flex;flex-direction:column;
+      min-width:0;min-height:0;
+      max-height:min(46dvh,340px);
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+      background:color-mix(in srgb,var(--paper) 92%,#fff);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 12px 10px;
+    }
+    .detail-rail .dr-head{
+      font-size:11px;letter-spacing:1.5px;font-weight:700;
+      color:var(--accent);margin-bottom:8px;flex:none;
+    }
+    .detail-rail .dr-item{
+      padding:9px 0;
+      border-bottom:1px dashed var(--line);
+    }
+    .detail-rail .dr-item:last-child{border-bottom:none;padding-bottom:2px}
+    .detail-rail .dr-t{
+      font-size:13px;font-weight:700;line-height:1.35;
+      margin-bottom:3px;
+    }
+    .detail-rail .dr-d{
+      font-size:11.5px;line-height:1.5;color:var(--muted);
+    }
+    /* 两栏时下方 meta 里重复信息可略收紧 */
+    .detail-split.split-on + .detail-lead .meta-box{display:none}
+  }
+
+  /* 图解下方：导语 + 结构信息 */
+  .detail-lead{margin:26px 0 4px;display:flex;gap:34px;align-items:flex-start;flex-wrap:wrap}
+  .detail-lead .lead-txt{flex:1.3;min-width:260px}
+  .detail-lead .lead-txt p.lead{font-size:15.5px;line-height:1.95;opacity:.88}
+  .detail-lead .meta-box{flex:1;min-width:220px}
+  .meta-list{list-style:none}
+  .meta-list li{display:flex;align-items:baseline;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:14px}
+  .meta-list li b{color:var(--accent);font-size:14px;min-width:56px}
+  .meta-list li span{color:var(--muted)}
+
+  /* ===== 富内容区块 ===== */
+  .body-blocks{margin-top:30px}
+  .blk{margin-bottom:22px}
+  .blk-h{font-size:18px;font-weight:600;letter-spacing:1px;margin-bottom:10px;padding-left:12px;border-left:3px solid var(--accent)}
+  .blk p{font-size:15px;line-height:1.95;opacity:.88;margin-bottom:8px}
+  .blk ul.pts{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .blk ul.pts li{position:relative;padding-left:22px;font-size:15px;line-height:1.7;opacity:.9}
+  .blk ul.pts li::before{content:"";position:absolute;left:4px;top:9px;width:8px;height:8px;border-radius:50%;background:var(--sage)}
+  table.kv{width:100%;border-collapse:collapse;font-size:14px}
+  table.kv td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  table.kv td:first-child{color:var(--accent);font-weight:600;white-space:nowrap;width:34%}
+  .tips-box{background:color-mix(in srgb,var(--accent) 8%,var(--paper));border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));border-radius:12px;padding:14px 18px}
+  .tips-box .th{font-size:13px;letter-spacing:1px;color:var(--accent);font-weight:600;margin-bottom:8px}
+  .tips-box li{list-style:none;padding-left:20px;position:relative;font-size:14px;line-height:1.7;margin-bottom:5px}
+  .tips-box li::before{content:"！";position:absolute;left:0;color:var(--accent);font-weight:700}
+  .budget{width:100%;border-collapse:collapse;font-size:14px}
+  .budget th,.budget td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line)}
+  .budget th{color:var(--muted);font-weight:600;font-size:13px;letter-spacing:1px}
+  .budget td:last-child,.budget th:last-child{text-align:right}
+  .budget tr.total td{border-top:2px solid var(--accent);border-bottom:none;font-weight:700;color:var(--accent)}
+  .checklist{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .checklist li{display:flex;align-items:center;gap:9px;font-size:14px;cursor:pointer;padding:7px 10px;border:1px solid var(--line);border-radius:9px;transition:background .15s}
+  .checklist li:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
+  .checklist .box{width:17px;height:17px;border:1.5px solid var(--accent);border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff}
+  .checklist li.done .box{background:var(--accent)}
+  .checklist li.done span{text-decoration:line-through;color:var(--muted)}
+
+  /* ===== 真实图片图库 ===== */
+  .gallery-wrap{margin-top:8px}
+  .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+  .gallery figure{margin:0;cursor:zoom-in;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:var(--paper);position:relative}
+  .gallery img{width:100%;height:104px;object-fit:cover;display:block;transition:transform .3s}
+  .gallery figure:hover img{transform:scale(1.06)}
+  .gallery figcaption{font-size:12px;color:var(--muted);padding:6px 8px;line-height:1.4}
+  .real-badge{display:inline-block;font-size:11px;letter-spacing:1px;color:var(--accent);border:1px solid var(--accent);border-radius:20px;padding:2px 10px;margin-left:10px;vertical-align:middle}
+
+  /* ===== 组件通用容器 ===== */
+  .widget{margin-top:8px;background:color-mix(in srgb,var(--paper) 60%,#fff);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+  .widget .wtitle{font-size:15px;font-weight:600;letter-spacing:1px;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+  /* 时间轴 */
+  .timeline{position:relative;padding-left:26px}
+  .timeline::before{content:"";position:absolute;left:7px;top:4px;bottom:4px;width:2px;background:var(--line)}
+  .tl-item{position:relative;padding-bottom:20px}
+  .tl-item:last-child{padding-bottom:0}
+  .tl-item::before{content:"";position:absolute;left:-23px;top:3px;width:14px;height:14px;border-radius:50%;background:var(--paper);border:3px solid var(--accent)}
+  .tl-year{font-size:15px;font-weight:700;color:var(--accent)}
+  .tl-title{font-size:15px;font-weight:600;margin:2px 0 3px}
+  .tl-desc{font-size:14px;color:var(--muted);line-height:1.7}
+
+  /* 步骤器 */
+  .stepper .steps{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+  .stepper .snum{flex:none;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;color:var(--muted);transition:all .2s}
+  .stepper .snum.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .stepper .snum.done{border-color:var(--accent);color:var(--accent)}
+  .stepper .sbody{min-height:80px}
+  .stepper .sbody h5{font-size:17px;margin-bottom:8px}
+  .stepper .sbody p{font-size:15px;line-height:1.9;opacity:.88;margin-bottom:10px}
+  .stepper .stip{font-size:13px;color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);padding:8px 12px;border-radius:8px}
+  .stepper .snav{display:flex;justify-content:space-between;margin-top:16px}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:20px;padding:8px 20px;font-size:14px;cursor:pointer;font-family:inherit}
+  .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+
+  /* 菜谱计算器 */
+  .recipe .ctrl{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+  .stepper-num{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .stepper-num button{width:36px;height:36px;border:none;background:color-mix(in srgb,var(--paper) 50%,#fff);font-size:18px;cursor:pointer;color:var(--accent)}
+  .stepper-num .val{width:44px;text-align:center;font-size:16px;font-weight:700}
+  .recipe .ing{list-style:none;display:flex;flex-direction:column;gap:2px}
+  .recipe .ing li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);font-size:15px;cursor:pointer}
+  .recipe .ing li .nm{display:flex;align-items:center;gap:9px}
+  .recipe .ing li .qty{font-weight:700;color:var(--accent);white-space:nowrap}
+  .recipe .ing li.have .nm span{text-decoration:line-through;color:var(--muted)}
+  .recipe .ing li.have .qty{color:var(--muted);text-decoration:line-through}
+  .recipe .hint{font-size:13px;color:var(--muted);margin-top:12px;line-height:1.6}
+
+  /* 路线规划器 */
+  .route .picker{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+  .route .stop-pick{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:15px;transition:background .15s}
+  .route .stop-pick:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
+  .route .stop-pick .box{width:17px;height:17px;border:1.5px solid var(--accent);border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px}
+  .route .stop-pick.on .box{background:var(--accent)}
+  .route .stop-pick .st-tag{margin-left:auto;font-size:12px;color:var(--muted)}
+  .route .result{margin-top:6px}
+  .route .r-stop{position:relative;padding:0 0 4px 30px}
+  .route .r-stop::before{content:"";position:absolute;left:9px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--accent)}
+  .route .r-stop::after{content:"";position:absolute;left:14px;top:20px;bottom:-14px;width:2px;background:var(--line)}
+  .route .r-stop:last-child::after{display:none}
+  .route .r-name{font-size:15px;font-weight:600}
+  .route .r-meta{font-size:13px;color:var(--muted);margin:2px 0 14px}
+  .route .r-move{display:inline-block;font-size:12px;color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);padding:2px 10px;border-radius:20px;margin-top:4px}
+
+  .back-btn{position:absolute;top:16px;left:22px;z-index:30;display:flex;align-items:center;gap:8px;background:color-mix(in srgb,var(--paper) 82%,#fff);border:1px solid var(--line);padding:8px 18px;border-radius:22px;cursor:pointer;font-family:inherit;font-size:14px;color:var(--ink)}
+  .hint{position:absolute;top:20px;right:28px;z-index:20;font-size:13px;color:var(--muted);letter-spacing:1px;display:flex;align-items:center;gap:6px}
+  .hint .pulse{width:9px;height:9px;border-radius:50%;background:var(--accent);animation:blink 1.4s infinite}
+  @keyframes blink{50%{opacity:.2}}
+  .src{position:absolute;bottom:16px;right:20px;font-size:11px;color:var(--muted);z-index:8;opacity:.7}
+  .src a{color:var(--accent);text-decoration:none}
+
+  /* 抽屉（总览组件）+ 灯箱 */
+  .drawer-mask,.lightbox{position:fixed;inset:0;background:rgba(20,22,18,.55);z-index:200;display:none;align-items:center;justify-content:center;padding:30px}
+  .drawer-mask.on,.lightbox.on{display:flex}
+  .drawer{background:var(--paper);border-radius:18px;max-width:560px;width:100%;max-height:86vh;overflow-y:auto;padding:26px 28px;position:relative}
+  .drawer h3{font-size:20px;margin-bottom:4px}
+  .drawer .dsub{font-size:13px;color:var(--muted);margin-bottom:18px}
+  .x-btn{position:absolute;top:16px;right:18px;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--paper);cursor:pointer;font-size:16px;color:var(--ink)}
+  .lightbox img{max-width:90%;max-height:82%;border-radius:12px;box-shadow:0 20px 50px rgba(0,0,0,.4)}
+  .lightbox .lb-cap{position:absolute;bottom:24px;left:0;right:0;text-align:center;color:#fff;font-size:14px}
+
+  /* 窄屏 / APP：纵向堆叠，资料卡不挡地图，热点贴图 */
+  @media(max-width:760px){
+    :root{--topbar-h:52px}
+    .topbar{gap:8px;padding:8px 10px;padding-top:max(8px,var(--safe-top))}
+    .dots{display:none}
+    .crumb{font-size:13px;padding:7px 12px;gap:6px}
+    .crumb .dim[style*="margin-left"]{display:none!important}
+    .clear-btn{padding:8px 14px;font-size:13px;flex:none}
+    .stage{height:calc(100dvh - var(--topbar-h) - var(--safe-top))}
+
+    #scene-home{
+      justify-content:flex-start;
+      overflow-x:hidden;
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+      padding:10px 12px 18px;
+      padding-bottom:max(18px,calc(12px + var(--safe-bottom)));
+    }
+    #scene-home .hint{position:static;margin:0 0 6px auto;max-width:none;font-size:11px}
+    .scene-title{font-size:20px;letter-spacing:1px;margin-bottom:4px;padding:0 4px}
+    .scene-sub{font-size:12px;max-width:100%;margin-bottom:10px;padding:0 4px;line-height:1.5}
+
+    .canvas{
+      flex:none;
+      width:100%;
+      max-width:100%;
+      min-height:0;
+      margin:0 auto 10px;
+      padding:26px 10px 14px; /* 给标签上下留空，避免被裁切 */
+      box-sizing:border-box;
+    }
+    .map-stage{max-width:100%;max-height:none;width:100%}
+    .map-stage img.main{
+      width:100%;
+      max-width:100%;
+      max-height:min(46dvh,360px);
+      height:auto;
+      margin:0 auto;
+    }
+
+    /* 桌面浮层资料卡 → 挪到图下方（由 JS 挂到 .facts-slot） */
+    .facts-slot{display:block;margin-bottom:12px}
+    .factsheet,
+    .facts-slot .factsheet{
+      position:static!important;
+      left:auto!important;right:auto!important;top:auto!important;
+      transform:none!important;
+      width:100%!important;
+      max-width:100%;
+      padding:12px 14px;
+      margin:0;
+      box-shadow:none;
+    }
+    .factsheet h4{font-size:12px;margin-bottom:8px}
+    .factsheet .row{font-size:12px;padding:5px 0}
+
+    .home-dock{
+      position:static;
+      padding:0;
+      margin-top:4px;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:8px;
+    }
+    .tools-btn{padding:10px 16px;font-size:13px}
+    .footer-note{
+      max-width:100%;
+      white-space:normal;
+      font-size:12px;
+      padding:8px 12px;
+      line-height:1.45;
+    }
+
+    .map-stage,.canvas{overflow:visible}
+    .hotspot{width:18px;height:18px;margin-left:-9px;margin-top:-9px;border-width:1.2px}
+    .hotspot::after{width:5px;height:5px}
+    .hotspot .ping{inset:-4px;border-width:1px}
+    .hotspot .tip{
+      opacity:1;
+      font-size:11px;
+      padding:4px 8px;
+      max-width:none;
+      overflow:visible;
+      text-overflow:clip;
+      white-space:nowrap;
+    }
+
+    .src{position:static;opacity:.65;font-size:10px;text-align:center;margin-top:8px;padding-bottom:4px}
+    .hint{top:10px;right:12px;font-size:11px;max-width:46%;text-align:right}
+    .back-btn{top:12px;left:12px;padding:8px 14px;font-size:13px}
+    .detail-scroll{padding:56px 14px max(40px,calc(24px + var(--safe-bottom)))}
+    .diagram-head h2{font-size:22px}
+    .diagram-img{max-height:42dvh}
+    .detail-lead{gap:14px;margin-top:18px}
+    .detail-lead .lead-txt,.detail-lead .meta-box{min-width:0;flex:1 1 100%}
+    .drawer{padding:22px 18px;max-height:90dvh;border-radius:18px 18px 0 0}
+    .drawer-mask,.lightbox{padding:0;align-items:flex-end}
+    .lightbox{align-items:center;padding:20px}
+  }
+
+  /* APP 内嵌：由外壳提供关闭/返回，隐藏网页自带顶栏 */
+  body.embed .topbar{display:none}
+  body.embed{--topbar-h:0px;--safe-top:0px}
+  body.embed .stage{height:100%;height:100dvh}
+  body.embed .back-btn{top:max(12px,env(safe-area-inset-top,0px))}
+
+  /* 极窄（手机 APP 常见宽度）再收紧 */
+  @media(max-width:430px){
+    .scene-title{font-size:18px}
+    .map-stage img.main{max-height:min(42dvh,300px)}
+    .hotspot{width:16px;height:16px;margin-left:-8px;margin-top:-8px}
+    .hotspot::after{width:4px;height:4px}
+    .hotspot .tip{font-size:10.5px;padding:3px 7px}
+  }
+
+  /* ===== 旅行攻略扩展（travel_planner.js）===== */
+  body.travel-mode #travelChrome{display:block}
+  #travelChrome{display:none;position:fixed;inset:0;pointer-events:none;z-index:60}
+  .tv-fab{
+    pointer-events:auto;position:fixed;border:none;cursor:pointer;
+    display:flex;align-items:center;gap:6px;
+    background:color-mix(in srgb,var(--paper) 92%,#fff);
+    border:1px solid var(--line);border-radius:22px;
+    padding:8px 12px;font-family:inherit;font-size:13px;color:var(--ink);
+    box-shadow:0 8px 22px rgba(50,50,40,.14);
+  }
+  .tv-pack{top:max(12px,var(--safe-top));left:12px}
+  .tv-cash{top:max(12px,var(--safe-top));right:12px;font-weight:700}
+  .tv-cash-num{color:var(--accent)}
+  .tv-ico{font-size:16px;line-height:1}
+  .tv-plan-btn{
+    pointer-events:auto;position:fixed;left:50%;transform:translateX(-50%);
+    bottom:max(18px,calc(10px + var(--safe-bottom)));
+    background:var(--accent);color:#fff;border:none;border-radius:24px;
+    padding:12px 22px;font-family:inherit;font-size:14px;font-weight:700;
+    box-shadow:0 10px 28px rgba(47,111,143,.35);cursor:pointer;z-index:61;
+  }
+  body.tv-plan-open .tv-plan-btn{display:none}
+  body.embed .tv-pack{top:max(52px,calc(44px + var(--safe-top)))}
+  body.embed .tv-cash{top:max(52px,calc(44px + var(--safe-top)))}
+  .travel-panel{width:100%;max-width:1080px;margin:18px 0 8px}
+  .tv-go{margin-bottom:14px}
+  .tv-go-lab{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;cursor:pointer}
+  .tv-block{margin-bottom:16px;background:color-mix(in srgb,var(--paper) 70%,#fff);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .tv-bh{font-size:14px;font-weight:700;letter-spacing:1px;color:var(--accent);margin-bottom:10px}
+  .tv-check-list{list-style:none;display:flex;flex-direction:column;gap:6px}
+  .tv-check-list li{display:flex;gap:10px;align-items:flex-start;padding:10px 8px;border-radius:10px;cursor:pointer;border:1px solid transparent}
+  .tv-check-list li:hover{background:color-mix(in srgb,var(--accent) 6%,transparent)}
+  .tv-check-list li.on{background:color-mix(in srgb,var(--accent) 8%,transparent);border-color:color-mix(in srgb,var(--accent) 25%,var(--line))}
+  .tv-box{width:18px;height:18px;border:1.5px solid var(--accent);border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;margin-top:16px}
+  .tv-check-list li.on .tv-box{background:var(--accent)}
+  .tv-thumb{width:52px;height:52px;flex:none;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:color-mix(in srgb,var(--paper) 80%,#fff);box-shadow:0 1px 0 color-mix(in srgb,var(--ink) 6%,transparent)}
+  .tv-thumb img{display:block;width:100%;height:100%;object-fit:cover}
+  .tv-ci{flex:1;min-width:0;padding-top:2px}
+  .tv-cn{font-size:14px;font-weight:600;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;line-height:1.35}
+  .tv-bud{color:var(--accent);font-weight:700;white-space:nowrap}
+  .tv-note{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45}
+  .tv-sum{font-size:16px;margin:4px 0 10px}
+  .tv-sum b{color:var(--accent)}
+  .tv-hint{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:10px}
+  .tv-lines{list-style:none}
+  .tv-lines li{display:grid;grid-template-columns:1.1fr 1.2fr auto;gap:8px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13px}
+  .tv-l-k{color:var(--muted)}
+  .tv-l-a{font-weight:700;color:var(--accent);white-space:nowrap}
+  .tv-pack-list{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+  .tv-pack-list li{display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:13px}
+  .tv-check{color:var(--accent);font-weight:700}
+
+  /* ===== 插画行李箱行李清单 ===== */
+  .drawer.tv-drawer-bag{max-width:640px}
+  .tv-bag{text-align:center;margin-bottom:14px}
+  .tv-bag-case{
+    position:relative;display:inline-block;max-width:min(100%,340px);
+    transition:transform .55s cubic-bezier(.4,.1,.3,1),filter .55s ease;
+    transform-origin:50% 80%;
+  }
+  .tv-bag-img{display:block;width:100%;height:auto;border-radius:14px;border:1px solid var(--line)}
+  .tv-bag-pile{
+    position:absolute;left:12%;right:12%;top:28%;bottom:18%;
+    display:flex;flex-wrap:wrap;align-content:flex-end;justify-content:center;
+    gap:2px;pointer-events:none;overflow:hidden;
+  }
+  .tv-bag-chip{
+    width:22%;aspect-ratio:1;border-radius:8px;overflow:hidden;
+    border:1px solid color-mix(in srgb,var(--paper) 70%,#fff);
+    box-shadow:0 2px 6px rgba(50,50,40,.12);
+    animation:tvBagBob calc(1.1s + var(--i) * .12s) ease-in-out infinite;
+    animation-delay:calc(var(--i) * .05s);
+  }
+  .tv-bag-chip img{display:block;width:100%;height:100%;object-fit:cover}
+  .tv-bag-weight{
+    margin-top:8px;font-size:13px;font-weight:700;letter-spacing:1px;color:var(--accent);
+  }
+  .tv-bag.w0 .tv-bag-case{transform:scale(1);filter:none}
+  .tv-bag.w0 .tv-bag-chip{animation-duration:1s}
+  .tv-bag.w1 .tv-bag-case{transform:scale(1.01) translateY(1px)}
+  .tv-bag.w1 .tv-bag-chip{animation-duration:1.35s}
+  .tv-bag.w2 .tv-bag-case{transform:scale(1.02) translateY(3px) scaleY(.98);filter:saturate(.95)}
+  .tv-bag.w2 .tv-bag-chip{animation-duration:1.8s}
+  .tv-bag.w3 .tv-bag-case{
+    transform:scale(1.03) translateY(6px) scaleY(.94) rotate(-.6deg);
+    filter:saturate(.88) brightness(.97);
+  }
+  .tv-bag.w3 .tv-bag-chip{animation-duration:2.6s}
+  .tv-bag.w3 .tv-bag-weight{color:color-mix(in srgb,var(--ink) 55%,var(--accent))}
+  .tv-bag-case.swallow{animation:tvBagSwallow .45s ease}
+  .tv-bag-case.spit{animation:tvBagSpit .45s ease}
+  @keyframes tvBagBob{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-3px)}
+  }
+  @keyframes tvBagSwallow{
+    0%{transform:scale(1)}
+    40%{transform:scale(1.04) scaleY(.96)}
+    100%{transform:scale(1)}
+  }
+  @keyframes tvBagSpit{
+    0%{transform:scale(1)}
+    35%{transform:scale(.97) translateY(-4px)}
+    100%{transform:scale(1)}
+  }
+  .tv-pack-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px;
+  }
+  .tv-pack-item{
+    appearance:none;-webkit-appearance:none;cursor:pointer;font-family:inherit;
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    padding:10px 8px 8px;border-radius:14px;border:1px solid var(--line);
+    background:color-mix(in srgb,var(--paper) 85%,#fff);color:var(--ink);
+    transition:border-color .2s,background .2s,transform .2s,opacity .2s;
+  }
+  .tv-pack-item:hover{transform:translateY(-1px)}
+  .tv-pack-item.on{
+    border-color:color-mix(in srgb,var(--accent) 40%,var(--line));
+    background:color-mix(in srgb,var(--accent) 8%,var(--paper));
+  }
+  .tv-pack-item:not(.on){opacity:.72}
+  .tv-pack-item:not(.on) .tv-pack-ico{filter:grayscale(.35) opacity(.85)}
+  .tv-pack-ico{
+    width:56px;height:56px;border-radius:12px;overflow:hidden;
+    border:1px solid var(--line);background:var(--stage);
+  }
+  .tv-pack-ico img{display:block;width:100%;height:100%;object-fit:cover}
+  .tv-pack-name{font-size:11.5px;line-height:1.3;text-align:center;max-width:100%}
+  .tv-pack-tick{
+    font-size:12px;font-weight:700;color:var(--accent);min-height:1em;
+  }
+  .tv-pack-ghost{
+    position:fixed;z-index:400;width:52px;height:52px;border-radius:12px;overflow:hidden;
+    border:1px solid var(--line);pointer-events:none;
+    transition:left .55s cubic-bezier(.4,.05,.2,1),top .55s cubic-bezier(.4,.05,.2,1),
+      transform .55s cubic-bezier(.4,.05,.2,1),opacity .55s ease;
+    box-shadow:0 8px 20px rgba(50,50,40,.2);
+  }
+  .tv-pack-ghost img{display:block;width:100%;height:100%;object-fit:cover}
+  .tv-map-wrap{margin:8px 0 22px}
+  .tv-map-wrap.baked .tv-route,
+  .tv-map-wrap.baked .tv-map-pins{display:none}
+  .tv-map-stage{position:relative;width:100%;max-width:720px;margin:0 auto;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--paper)}
+  .tv-map-img{display:block;width:100%;height:auto}
+  .tv-route{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+  .tv-route-soft{stroke:color-mix(in srgb,var(--accent) 22%,transparent);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .tv-route-line{stroke:var(--accent);stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round;opacity:.88;fill:none}
+  .tv-map-pins{position:absolute;inset:0;pointer-events:none}
+  .tv-map-pin{position:absolute;transform:translate(-50%,-50%);z-index:2}
+  .tv-map-num{
+    display:flex;width:18px;height:18px;border-radius:50%;
+    background:color-mix(in srgb,var(--paper) 88%,#fff);color:var(--accent);
+    font-size:10px;font-weight:700;align-items:center;justify-content:center;
+    border:1.5px solid var(--accent);box-shadow:0 1px 4px rgba(50,50,40,.12);
+  }
+  .tv-map-legend{
+    display:flex;flex-wrap:wrap;gap:8px 12px;justify-content:center;
+    max-width:720px;margin:10px auto 0;padding:0 4px;
+  }
+  .tv-leg-item{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12px;color:var(--ink);
+  }
+  .tv-leg-item i{
+    display:inline-flex;width:16px;height:16px;border-radius:50%;
+    border:1.2px solid var(--accent);color:var(--accent);
+    font-size:10px;font-style:normal;font-weight:700;
+    align-items:center;justify-content:center;
+  }
+
+  /* ===== 图示攻略（杂志风分日版式，非卡通手绘）===== */
+  .tv-guide{width:100%;max-width:720px;margin:0 auto}
+  .tv-cover{
+    text-align:center;padding:8px 8px 20px;margin-bottom:8px;
+    border-bottom:1px dashed var(--line);
+  }
+  .tv-cover-tag{
+    display:inline-block;font-size:11px;letter-spacing:2px;color:#fff;
+    background:var(--sage);padding:3px 12px;border-radius:20px;margin-bottom:12px;
+  }
+  .tv-cover h2{font-size:clamp(22px,5vw,30px);letter-spacing:2px;font-weight:600;margin-bottom:6px}
+  .tv-cover-sub{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:16px}
+  .tv-cover-stats{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+    max-width:420px;margin:0 auto 16px;
+  }
+  .tv-stat{
+    background:color-mix(in srgb,var(--paper) 75%,#fff);
+    border:1px solid var(--line);border-radius:12px;padding:10px 6px;
+  }
+  .tv-stat b{display:block;font-size:18px;font-weight:700;color:var(--ink);line-height:1.2}
+  .tv-stat.accent b{color:var(--accent);font-size:15px}
+  .tv-stat span{font-size:11px;color:var(--muted);letter-spacing:1px}
+  .tv-day-nav{
+    display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
+    position:sticky;top:0;z-index:5;
+    padding:10px 4px 12px;margin:4px 0 8px;
+    background:color-mix(in srgb,var(--stage) 88%,transparent);
+    backdrop-filter:blur(8px);
+  }
+  .tv-nav-day{
+    appearance:none;-webkit-appearance:none;cursor:pointer;
+    text-decoration:none;color:var(--accent);font-size:12px;font-weight:700;
+    border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));
+    background:color-mix(in srgb,var(--accent) 8%,var(--paper));
+    padding:6px 12px;border-radius:16px;letter-spacing:1px;font-family:inherit;
+  }
+  .tv-nav-day.on{
+    background:var(--accent);color:#fff;border-color:var(--accent);
+    box-shadow:0 4px 12px color-mix(in srgb,var(--accent) 30%,transparent);
+  }
+  .tv-days{display:block;margin:8px 0 8px;min-height:200px}
+  .tv-day-pane{display:none}
+  .tv-day-pane.on{display:block;animation:tvDayIn .35s ease}
+  @keyframes tvDayIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .tv-sec-h{
+    display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+    margin:4px 0 12px;padding:0 2px;
+  }
+  .tv-sec-h span{font-size:15px;font-weight:700;letter-spacing:1px;color:var(--ink)}
+  .tv-sec-h em{font-style:normal;font-size:12px;color:var(--muted)}
+
+  .tv-day-page{
+    background:
+      linear-gradient(180deg,color-mix(in srgb,var(--paper) 92%,#fff),color-mix(in srgb,var(--bg2) 40%,var(--paper)));
+    border:1px solid var(--line);border-radius:18px;overflow:hidden;
+    box-shadow:0 10px 28px rgba(50,50,40,.08);
+  }
+  .tv-day-ribbon{
+    text-align:center;padding:18px 16px 14px;
+    background:
+      radial-gradient(ellipse at 50% 0%,color-mix(in srgb,var(--accent) 12%,transparent),transparent 70%),
+      color-mix(in srgb,var(--paper) 88%,#fff);
+    border-bottom:1px dashed var(--line);
+  }
+  .tv-day-num{
+    display:inline-block;font-size:12px;font-weight:700;letter-spacing:3px;
+    color:var(--accent);margin-bottom:6px;
+  }
+  .tv-day-theme{font-size:22px;letter-spacing:2px;font-weight:600;margin:0}
+  .tv-day-tip{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.5;max-width:36em;margin-left:auto;margin-right:auto}
+  .tv-itin{
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 4px;
+    margin-top:14px;padding:10px 12px;border-radius:12px;
+    background:color-mix(in srgb,var(--paper) 70%,#fff);border:1px dashed var(--line);
+    font-size:12px;line-height:1.4;
+  }
+  .tv-itin-k{font-weight:700;color:var(--accent);letter-spacing:1px;margin-right:4px}
+  .tv-itin em{font-style:normal;font-weight:600;color:var(--ink);max-width:9em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tv-itin-sep{color:var(--accent);opacity:.7;padding:0 2px}
+
+  .tv-slots{display:flex;flex-direction:column;gap:0;padding:4px 0}
+  .tv-slot{
+    display:grid;grid-template-columns:1fr 1.2fr;gap:14px;align-items:stretch;
+    padding:16px 14px;border-bottom:1px dashed color-mix(in srgb,var(--line) 80%,transparent);
+  }
+  .tv-slot:last-child{border-bottom:none}
+  .tv-slot.reverse{grid-template-columns:1.2fr 1fr}
+  .tv-slot.reverse .tv-slot-copy{order:2}
+  .tv-slot.reverse .tv-slot-media{order:1}
+  .tv-slot-meta{display:flex;align-items:center;gap:7px;margin-bottom:8px;flex-wrap:wrap}
+  .tv-slot-num{
+    display:inline-flex;width:20px;height:20px;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:11px;font-weight:700;
+    align-items:center;justify-content:center;
+  }
+  .tv-slot-pill{
+    display:inline-flex;align-items:center;
+    font-size:11px;font-weight:700;letter-spacing:1px;color:#fff;
+    background:var(--accent);padding:3px 10px;border-radius:12px;
+  }
+  .tv-slot.kind-food .tv-slot-pill{background:var(--sage)}
+  .tv-slot.kind-stay .tv-slot-pill{background:color-mix(in srgb,var(--ink) 72%,var(--accent))}
+  .tv-slot-kind{
+    font-size:10px;font-weight:700;letter-spacing:1px;color:var(--accent);
+    border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));
+    padding:2px 7px;border-radius:8px;
+  }
+  .tv-slot-time{font-size:11px;color:var(--muted);letter-spacing:.5px}
+  .tv-slot-title{font-size:16px;font-weight:700;letter-spacing:.5px;margin-bottom:6px;line-height:1.35}
+  .tv-slot-body{font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:8px}
+  .tv-slot-bullets{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:4px}
+  .tv-slot-bullets li{
+    position:relative;padding-left:12px;font-size:12px;color:var(--ink);line-height:1.45;
+  }
+  .tv-slot-bullets li::before{
+    content:"";position:absolute;left:0;top:.55em;width:5px;height:5px;border-radius:50%;
+    background:var(--accent);
+  }
+  .tv-slot.kind-food .tv-slot-bullets li::before{background:var(--sage)}
+  .tv-tip-box{
+    font-size:12px;line-height:1.5;color:var(--ink);margin-bottom:8px;
+    padding:8px 10px;border-radius:10px;
+    background:color-mix(in srgb,var(--accent) 8%,var(--paper));
+    border:1px dashed color-mix(in srgb,var(--accent) 30%,var(--line));
+  }
+  .tv-tip-box span{display:inline-block;font-weight:700;color:var(--accent);margin-right:6px;letter-spacing:1px;font-size:11px}
+  .tv-chips{display:flex;flex-wrap:wrap;gap:6px}
+  .tv-chip{
+    font-size:11px;color:var(--ink);
+    background:color-mix(in srgb,var(--accent) 8%,var(--paper));
+    border:1px solid var(--line);border-radius:10px;padding:3px 8px;
+  }
+  .tv-chip.muted{color:var(--muted)}
+  .tv-slot-media{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .tv-slot-visual{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line);aspect-ratio:4/3;background:var(--stage)}
+  .tv-slot-visual img,.tv-slot-side img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;filter:saturate(.92) contrast(1.02)}
+  .tv-slot-side-wrap{display:flex;flex-direction:column;gap:4px}
+  .tv-slot-side{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/9;background:var(--stage)}
+  .tv-slot-ph{width:100%;height:100%;background:
+    radial-gradient(circle at 30% 30%,color-mix(in srgb,var(--accent) 18%,transparent),transparent 55%),
+    var(--stage)}
+  /* 标注放在图下方，不遮挡画面 */
+  .tv-slot-cap{
+    display:block;font-size:11px;line-height:1.35;color:var(--muted);
+    padding:2px 2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .tv-slot.kind-food .tv-slot-cap{color:var(--sage)}
+  .tv-slot.kind-stay .tv-slot-cap{color:color-mix(in srgb,var(--ink) 70%,var(--accent))}
+  .tv-slot.kind-play .tv-slot-cap{color:var(--accent)}
+
+  .tv-day-foot{
+    padding:14px 14px 16px;
+    background:color-mix(in srgb,var(--paper) 70%,#fff);
+    border-top:1px solid var(--line);
+    display:grid;grid-template-columns:1.4fr 1fr;gap:12px;align-items:start;
+  }
+  .tv-day-foot-h{font-size:12px;font-weight:700;letter-spacing:2px;color:var(--accent);margin-bottom:10px;text-align:center}
+  .tv-day-tips{
+    border:1px dashed var(--line);border-radius:12px;padding:10px 12px;
+    background:color-mix(in srgb,var(--paper) 90%,#fff);
+  }
+  .tv-day-tips-h{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--accent);margin-bottom:6px}
+  .tv-day-tips p,.tv-day-tips li{font-size:12px;color:var(--ink);line-height:1.5}
+  .tv-day-tips ul{list-style:none;display:flex;flex-direction:column;gap:4px}
+  .tv-flow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 4px}
+  .tv-flow-node{
+    display:inline-flex;align-items:center;gap:5px;
+    background:color-mix(in srgb,var(--paper) 90%,#fff);
+    border:1px solid var(--line);border-radius:12px;padding:5px 9px 5px 5px;
+  }
+  .tv-flow-node i{
+    display:inline-flex;width:16px;height:16px;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:10px;font-style:normal;font-weight:700;
+    align-items:center;justify-content:center;
+  }
+  .tv-flow-node em{font-style:normal;font-size:11.5px;max-width:7.5em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tv-flow-arrow{
+    width:18px;height:1px;background:var(--accent);opacity:.45;position:relative;flex:none;
+  }
+  .tv-flow-arrow::after{
+    content:"";position:absolute;right:-1px;top:-3px;
+    border:4px solid transparent;border-left-color:var(--accent);opacity:.7;
+  }
+
+  .tv-guide-end{margin:8px 0 24px}
+  .tv-end-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .tv-end-card{
+    background:color-mix(in srgb,var(--paper) 75%,#fff);
+    border:1px solid var(--line);border-radius:14px;padding:14px;
+  }
+  .tv-pack-peek{display:flex;flex-wrap:wrap;gap:6px}
+  .tv-guide-sign{
+    text-align:center;margin-top:18px;font-size:13px;color:var(--muted);
+    letter-spacing:1px;font-style:italic;
+  }
+
+  @media(max-width:760px){
+    .tv-lines li{grid-template-columns:1fr;gap:2px}
+    .tv-plan-btn{font-size:13px;padding:11px 18px}
+    .tv-cover-stats{grid-template-columns:repeat(2,1fr);max-width:280px}
+    .tv-slot,.tv-slot.reverse{grid-template-columns:1fr;gap:10px}
+    .tv-slot.reverse .tv-slot-copy,.tv-slot.reverse .tv-slot-media{order:unset}
+    .tv-slot-visual{aspect-ratio:16/10}
+    .tv-end-grid{grid-template-columns:1fr}
+    .tv-day-theme{font-size:18px}
+    .tv-day-foot{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="dots"><i></i><i></i><i></i></div>
+  <div class="crumb">
+    <span class="path-item" onclick="goHome()" id="crumbHome"></span>
+    <span class="sep" id="crumbSep" style="display:none">/</span>
+    <span class="path-item dim" id="crumbDetail" style="display:none"></span>
+    <span class="dim" style="margin-left:auto">Continue this session</span>
+  </div>
+  <button class="clear-btn" onclick="goHome()">Clear</button>
+</div>
+
+<div class="stage">
+  <section class="scene active" id="scene-home">
+    <div class="hint"><span class="pulse"></span><span id="hintText">点击光点查看细节</span></div>
+    <div class="scene-title" id="homeTitle"></div>
+    <div class="scene-sub" id="homeSub"></div>
+    <div class="canvas" id="homeCanvas">
+      <div class="map-stage" id="mapStage">
+        <img class="main" id="mainImg" alt="overview">
+      </div>
+    </div>
+    <div class="facts-slot" id="factsSlot"></div>
+    <div class="home-dock">
+      <button class="tools-btn" id="toolsBtn" style="display:none" onclick="openTools()"><span id="toolsLabel">互动工具</span></button>
+      <div class="footer-note" id="homeNote"></div>
+    </div>
+    <div class="src" id="srcLine"></div>
+  </section>
+
+  <section class="scene" id="scene-detail">
+    <button class="back-btn" onclick="goHome()">← 返回总览</button>
+    <div class="detail-scroll">
+      <div class="detail-inner">
+        <div class="diagram-head">
+          <span class="tag" id="detailTag"></span>
+          <h2 id="detailName"></h2>
+          <div class="en" id="detailEn"></div>
+        </div>
+        <!-- 宽屏：插画+引线标注；窄屏：左图右文两栏 -->
+        <div class="detail-split" id="detailSplit">
+          <div class="diagram-stage" id="diagramStage">
+            <div class="diagram" id="diagram">
+              <img class="diagram-img" id="detailImg" src="" alt="detail">
+              <svg class="leaders" id="leaders"></svg>
+              <div class="diagram-hint" id="diagramHint">图中标注对应画面部位</div>
+            </div>
+          </div>
+          <aside class="detail-rail" id="detailRail" hidden></aside>
+        </div>
+        <!-- 图解下方：导语 + 结构信息 -->
+        <div class="detail-lead">
+          <div class="lead-txt"><p class="lead" id="detailDesc"></p></div>
+          <div class="meta-box"><ul class="meta-list" id="detailMeta"></ul></div>
+        </div>
+        <div class="body-blocks" id="detailBody"></div>
+        <!-- 旅行攻略：美食/住宿/游玩/行李（theme=travel 时由 travel_planner.js 填充） -->
+        <div id="travelPanel" class="travel-panel"></div>
+        <div class="gallery-wrap" id="detailGallery"></div>
+        <div id="detailWidget"></div>
+        <div class="footer-note" id="detailNote" style="margin:26px auto 0"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- 总览级组件抽屉 -->
+<div class="drawer-mask" id="drawerMask">
+  <div class="drawer" id="drawer">
+    <button class="x-btn" onclick="closeTools()">✕</button>
+    <h3 id="drawerTitle"></h3>
+    <div class="dsub" id="drawerSub"></div>
+    <div id="drawerBody"></div>
+  </div>
+</div>
+<!-- 图片灯箱 -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lbImg" src="" alt="">
+  <div class="lb-cap" id="lbCap"></div>
+</div>
+
+<script>
+window.FLIPBOOK = {
+  "meta": {
+    "title": "巴厘岛保姆级自由行",
+    "enTitle": "Bali Non-Rushed Travel Guide",
+    "subtitle": "拒绝特种兵式折腾 · 5 大区域动线全攻略 · 直接照抄",
+    "theme": "travel",
+    "hint": "点地图看各地；勾选美食住宿算花费；右上💰左上🧳；逛完生成专属攻略",
+    "footer": "先落地泗水玩火山，再飞巴厘岛：南部玩海、乌布人文、仓谷活力、罗威纳追海豚",
+    "sourceVideo": {
+      "title": "巴厘岛自由行保姆级超长攻略（抖音 @Manta丨印尼奢华游）",
+      "url": "https://bytedance.larkoffice.com/minutes/obcnvwejf4i6j791i73qishs",
+      "duration": "01:56",
+      "author": "Manta丨印尼奢华游"
+    }
+  },
+  "overview": {
+    "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/dcdc275a760745d7b054e8b9b3a13572.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784973600&x-orig-sign=UO%2BWLprSc0FBMGRQlZoMQibijjo%3D",
+    "factsTitle": "TRIP · 行程档案",
+    "factsSide": "left",
+    "facts": [
+      {
+        "k": "行程风格",
+        "v": "非特种兵 · 慢玩"
+      },
+      {
+        "k": "核心区域",
+        "v": "5 站"
+      },
+      {
+        "k": "建议天数",
+        "v": "8–10 天"
+      },
+      {
+        "k": "泗水→巴厘",
+        "v": "飞行约 1 小时"
+      },
+      {
+        "k": "南部→罗威纳",
+        "v": "车程约 3 小时"
+      },
+      {
+        "k": "适合",
+        "v": "海景 · 人文 · 活力"
+      }
+    ],
+    "widget": {
+      "type": "route",
+      "title": "规划我的巴厘岛路线",
+      "subtitle": "勾选你想去的区域，一键生成带停留时长与转场的专属动线",
+      "button": "规划我的路线",
+      "stops": [
+        {
+          "name": "泗水 · 火山站",
+          "tag": "STOP 1",
+          "stay": "2 天",
+          "tip": "看 Bromo / 伊真火山，别在巴厘本岛找火山",
+          "moveNext": "飞行约 1 小时 → 巴厘岛南部"
+        },
+        {
+          "name": "南部 · 玩海站",
+          "tag": "STOP 2",
+          "stay": "2–3 天",
+          "tip": "住努沙杜瓦/乌鲁瓦图，看日落冲浪跳岛",
+          "moveNext": "车程约 1 小时 → 乌布"
+        },
+        {
+          "name": "乌布 · 人文站",
+          "tag": "STOP 3",
+          "stay": "2–3 天",
+          "tip": "丛林秋千、梯田、阿勇河漂流",
+          "moveNext": "车程约 40 分钟 → 仓谷"
+        },
+        {
+          "name": "仓谷 · 活力站",
+          "tag": "STOP 4",
+          "stay": "1–2 天",
+          "tip": "club、健身、白人饭与咖啡",
+          "moveNext": "车程约 3 小时 → 罗威纳（建议直接北上）"
+        },
+        {
+          "name": "罗威纳 · 海豚站",
+          "tag": "STOP 5",
+          "stay": "1 晚",
+          "tip": "住海边找船家，次日出海追海豚",
+          "moveNext": "返回南部转机（如去科莫多）"
+        },
+        {
+          "name": "科莫多 · 粉红沙滩",
+          "tag": "OPTION",
+          "stay": "1–2 天",
+          "tip": "进阶延伸，需从南部飞，无直达",
+          "moveNext": ""
+        }
+      ]
+    },
+    "routeImage": "media/bali/bali-route-map.png",
+    "packSuitcase": "media/bali/pack/suitcase.png",
+    "packIconBase": "media/bali/pack/"
+  },
+  "cards": [
+    {
+      "x": 22,
+      "y": 20,
+      "label": "泗水 · 火山站",
+      "tag": "STOP 1 · 火山",
+      "name": "泗水 Bromo / 伊真火山",
+      "en": "Surabaya · Volcanoes",
+      "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/dcdc275a760745d7b054e8b9b3a13572.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784973600&x-orig-sign=UO%2BWLprSc0FBMGRQlZoMQibijjo%3D",
+      "desc": "想看火山，一定要落地泗水——最出名的 Bromo 火山和伊真火山都在泗水，而不是巴厘岛本岛。火山行程结束后再飞巴厘岛，约 1 小时，千万别把两地弄混。",
+      "meta": [
+        [
+          "必看",
+          "Bromo · 伊真火山"
+        ],
+        [
+          "注意",
+          "不在巴厘本岛"
+        ],
+        [
+          "衔接",
+          "飞巴厘约 1 小时"
+        ],
+        [
+          "定位",
+          "行程第一站"
+        ]
+      ],
+      "note": "先泗水后巴厘，动线别搞反",
+      "clip": {
+        "start": "00:00",
+        "end": "00:42"
+      },
+      "annotations": [
+        {
+          "t": "Bromo 火山口",
+          "d": "凌晨吉普车上观景台，看云海日出",
+          "ax": 40,
+          "ay": 30,
+          "side": "left"
+        },
+        {
+          "t": "伊真蓝火",
+          "d": "夜爬看蓝色硫磺火焰，需防毒面具",
+          "ax": 66,
+          "ay": 40,
+          "side": "right"
+        },
+        {
+          "t": "接驳飞巴厘",
+          "d": "火山玩完再飞巴厘岛，约 1 小时",
+          "ax": 50,
+          "ay": 78,
+          "side": "left"
+        }
+      ],
+      "body": [
+        {
+          "h": "为什么第一站是泗水",
+          "type": "para",
+          "text": [
+            "很多人以为火山在巴厘岛本岛，其实印尼最出名的 Bromo 火山与伊真火山都在东爪哇的泗水一带。正确顺序是：先飞泗水看火山，玩完再飞巴厘岛，中间航程约 1 小时。",
+            "把顺序搞反会来回折返，浪费一整天在路上——这也是这条攻略反复强调的第一个坑。"
+          ]
+        },
+        {
+          "h": "两座火山怎么选",
+          "type": "table",
+          "rows": [
+            [
+              "Bromo 火山",
+              "看云海日出，凌晨出发，吉普车+骑马上观景台"
+            ],
+            [
+              "伊真火山",
+              "看蓝色硫磺火焰，需夜爬+防毒面具，体力要求高"
+            ],
+            [
+              "时间预算",
+              "各留 1 个整天，含往返与休整"
+            ]
+          ]
+        },
+        {
+          "h": "行前注意",
+          "type": "tips",
+          "items": [
+            "火山凌晨出发气温低，务必带冲锋衣/厚外套与手套",
+            "伊真蓝火需夜间徒步，准备头灯与结实登山鞋",
+            "硫磺气味刺鼻，敏感人群备好口罩或防毒面具",
+            "山区网络差，提前下载好离线地图与接驳信息"
+          ]
+        }
+      ],
+      "realPhotos": [
+        {
+          "url": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/7e71a1bbd9ae4288bc82f9a03c1b60b7.jpg~tplv-xobrcjvdq7-image.jpeg?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=V0dPUQtEOsd7fyRXw0SzL9rROhM%3D",
+          "cap": "视频开场 · 行程总览（00:12）"
+        },
+        {
+          "url": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/ade1af3819e64903953b0ab8a50c1420.jpg~tplv-xobrcjvdq7-image.jpeg?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=KMNxkOcxHnq69p20jm9wG2HL0Eg%3D",
+          "cap": "第一站讲解 · 泗水火山（00:25）"
+        }
+      ],
+      "daysSuggest": 2,
+      "food": [
+        {
+          "name": "泗水海鲜烧烤",
+          "budget": 90,
+          "note": "港口夜市现烤，鲜甜带炭香，落地第一顿很对味",
+          "defaultOn": true,
+          "image": "media/bali/bali-food-seafood.png"
+        },
+        {
+          "name": "印尼炒面 Mie Goreng",
+          "budget": 35,
+          "note": "街头招牌快餐，辣香耐饿，赶凌晨出发前垫肚子合适",
+          "defaultOn": true,
+          "image": "media/bali/bali-food-miegoreng.png"
+        }
+      ],
+      "stay": [
+        {
+          "name": "火山山脚民宿",
+          "budget": 280,
+          "nights": 1,
+          "note": "紧挨 Bromo 集合点，凌晨出发少折腾、能多睡一会",
+          "defaultOn": true,
+          "image": "media/bali/bali-stay-volcano.png"
+        },
+        {
+          "name": "泗水市区酒店",
+          "budget": 450,
+          "nights": 1,
+          "note": "靠近机场与城际接驳，落地首晚或返程 overnight 更省心",
+          "defaultOn": false,
+          "image": "media/bali/bali-stay-volcano.png"
+        }
+      ],
+      "play": [
+        {
+          "name": "Bromo 日出吉普车",
+          "budget": 260,
+          "note": "凌晨吉普穿沙海看日出，含接送，是火山站的核心体验",
+          "defaultOn": true,
+          "image": "media/bali/bali-play-bromo.png"
+        },
+        {
+          "name": "伊真蓝火徒步",
+          "budget": 320,
+          "note": "夜间看硫磺蓝火+日出，含向导与面具，强度比 Bromo 更高",
+          "defaultOn": false,
+          "image": "media/bali/bali-play-ijen.png"
+        }
+      ],
+      "packing": [
+        {
+          "name": "冲锋衣",
+          "note": "火山凌晨气温可到个位数，防风保暖必备"
+        },
+        {
+          "name": "手套",
+          "note": "吉普敞篷风大，握扶手时手会被冻僵"
+        },
+        {
+          "name": "头灯",
+          "note": "伊真夜间徒步山路无灯，双手要腾出来爬山"
+        },
+        {
+          "name": "防毒面具/口罩",
+          "note": "硫磺气味刺鼻，敏感人群没有口罩会很难受"
+        },
+        {
+          "name": "登山鞋",
+          "note": "沙海与碎石路湿滑，普通运动鞋容易打滑进沙"
+        },
+        {
+          "name": "现金印尼盾",
+          "note": "山区刷卡不稳，小费与小摊都要现金"
+        }
+      ],
+      "routeOrder": 1
+    },
+    {
+      "x": 50,
+      "y": 74,
+      "label": "南部 · 玩海站",
+      "tag": "STOP 2 · 海滨",
+      "name": "巴厘岛南部",
+      "en": "South Bali · Beaches",
+      "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/b416a19f417346a1a063f22e69b1d9b3.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784973600&x-orig-sign=vnbYHpJW1JY4paqTu3uYsOdXBs8%3D",
+      "desc": "机场就在南部，可住努沙杜瓦或乌鲁瓦图——五星酒店聚集区。最美海边日落、冲浪、滑翔伞、沙滩俱乐部都在这，去佩尼达岛的码头也在这。想玩海首选南部。",
+      "meta": [
+        [
+          "住宿",
+          "努沙杜瓦 / 乌鲁瓦图"
+        ],
+        [
+          "酒店",
+          "丽思卡尔顿 · 凯宾斯基"
+        ],
+        [
+          "玩法",
+          "日落 · 冲浪 · 滑翔伞"
+        ],
+        [
+          "跳岛",
+          "佩尼达岛码头"
+        ]
+      ],
+      "note": "巴厘岛的凯宾斯基和国内完全不一样",
+      "clip": {
+        "start": "00:20",
+        "end": "00:42"
+      },
+      "annotations": [
+        {
+          "t": "崖顶日落",
+          "d": "乌鲁瓦图断崖看日落与火舞",
+          "ax": 34,
+          "ay": 28,
+          "side": "left"
+        },
+        {
+          "t": "沙滩俱乐部",
+          "d": "Beach Club 泡一下午最惬意",
+          "ax": 62,
+          "ay": 46,
+          "side": "right"
+        },
+        {
+          "t": "跳岛码头",
+          "d": "南部码头坐快艇去佩尼达岛",
+          "ax": 48,
+          "ay": 80,
+          "side": "left"
+        }
+      ],
+      "body": [
+        {
+          "h": "住哪一片",
+          "type": "para",
+          "text": [
+            "巴厘岛机场就在南部，落地即达，是五星酒店最集中的区域。想省去舟车劳顿、以度假为主的，把大本营安在这里最省心。"
+          ]
+        },
+        {
+          "h": "必玩清单",
+          "type": "list",
+          "items": [
+            "乌鲁瓦图断崖看日落与凯查克火舞",
+            "海边冲浪教学，新手也能站上板",
+            "沙滩俱乐部（Beach Club）泡一下午",
+            "从南部码头坐快艇跳岛去佩尼达岛"
+          ]
+        },
+        {
+          "h": "住宿参考预算（每晚/双人）",
+          "type": "budget",
+          "cols": [
+            "档位",
+            "价格"
+          ],
+          "rows": [
+            [
+              "精品民宿",
+              "¥400"
+            ],
+            [
+              "国际五星（丽思/凯宾斯基）",
+              "¥1800"
+            ],
+            [
+              "崖顶泳池别墅",
+              "¥3500"
+            ]
+          ],
+          "total": [
+            "区间",
+            "¥400 – 3500 / 晚"
+          ]
+        },
+        {
+          "h": "行李清单",
+          "type": "checklist",
+          "items": [
+            "泳衣 x2",
+            "防晒霜 SPF50",
+            "防水手机袋",
+            "沙滩拖鞋",
+            "冲浪防磨衣",
+            "现金印尼盾"
+          ]
+        }
+      ],
+      "realPhotos": [
+        {
+          "url": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/b6edd9a39e4f4b3c9b93109787a71eff.jpg~tplv-xobrcjvdq7-image.jpeg?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=eknGtnN7m8LVz3mgZE%2FPukgxKLE%3D",
+          "cap": "南部海滨与五星酒店区（00:38）"
+        }
+      ],
+      "daysSuggest": 2.5,
+      "food": [
+        {
+          "name": "Beach Club 套餐",
+          "budget": 280,
+          "note": "躺椅+泳池+轻食一站齐，下午泡到日落最巴厘",
+          "defaultOn": true,
+          "image": "media/bali/bali-food-beachclub.png"
+        },
+        {
+          "name": "乌鲁瓦图海鲜餐",
+          "budget": 160,
+          "note": "崖顶看日落配海鲜，氛围比味道更值得专程去",
+          "defaultOn": true,
+          "image": "media/bali/bali-food-uluwatu.png"
+        }
+      ],
+      "stay": [
+        {
+          "name": "努沙杜瓦五星酒店",
+          "budget": 1800,
+          "nights": 2,
+          "note": "丽思/凯宾斯基级度假感，沙滩与泳池一步达",
+          "defaultOn": false,
+          "image": "media/bali/bali-stay-uluwatu.png"
+        },
+        {
+          "name": "乌鲁瓦图精品民宿",
+          "budget": 650,
+          "nights": 2,
+          "note": "离断崖与火舞近，看日落不用长途奔波",
+          "defaultOn": true,
+          "image": "media/bali/bali-stay-uluwatu.png"
+        }
+      ],
+      "play": [
+        {
+          "name": "乌鲁瓦图火舞门票",
+          "budget": 120,
+          "defaultOn": true,
+          "image": "media/bali/bali-play-firedance.png",
+          "note": "凯查克火舞+断崖夜景，南部最经典的夜晚节目"
+        },
+        {
+          "name": "冲浪教学 2h",
+          "budget": 350,
+          "defaultOn": false,
+          "image": "media/bali/bali-play-surf.png",
+          "note": "新手友好海滩，两小时能站起来，南部必体验"
+        },
+        {
+          "name": "佩尼达岛快艇往返",
+          "budget": 480,
+          "defaultOn": true,
+          "image": "media/bali/bali-play-penida.png",
+          "note": "从南部码头跳岛，看断崖与净海水的高效一日游"
+        }
+      ],
+      "packing": [
+        {
+          "name": "泳衣 x2",
+          "note": "Beach Club 与冲浪轮换穿，湿了还能换干的"
+        },
+        {
+          "name": "防晒霜 SPF50",
+          "note": "赤道暴晒+水面反光，不涂很容易晒伤"
+        },
+        {
+          "name": "防水手机袋",
+          "note": "冲浪/快艇浪花大，手机进水概率很高"
+        },
+        {
+          "name": "沙滩拖鞋",
+          "note": "沙地与泳池边来回走，运动鞋太热太沉"
+        },
+        {
+          "name": "墨镜",
+          "note": "崖顶与海面反光强，看日落也更舒服"
+        },
+        {
+          "name": "轻薄外套",
+          "note": "海边傍晚风大，火舞散场后会凉"
+        }
+      ],
+      "routeOrder": 2
+    },
+    {
+      "x": 52,
+      "y": 48,
+      "label": "乌布 · 人文站",
+      "tag": "STOP 3 · 人文",
+      "name": "中部 · 乌布",
+      "en": "Ubud · Culture & Jungle",
+      "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/5251449140de49fea8c06a1b151c5351.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784973600&x-orig-sign=toMY5cJqXAoOYl8J9c9x5sMfogM%3D",
+      "desc": "往北到乌布，人文艺术与热带雨林的核心：丛林秋千、瑜伽、音疗、ATV 越野、《神庙逃亡》同款梯田、鲜花 SPA、阿勇河漂流、乌布大皇宫、雷贡舞。喜欢人文与雨林感的可多住几天。",
+      "meta": [
+        [
+          "体验",
+          "丛林秋千 · 瑜伽 · 音疗"
+        ],
+        [
+          "打卡",
+          "神庙逃亡同款梯田"
+        ],
+        [
+          "项目",
+          "阿勇河漂流 · ATV"
+        ],
+        [
+          "弊端",
+          "堵车 · 无 club"
+        ]
+      ],
+      "note": "偏爱人文雨林就住乌布，爱夜店的人不适合",
+      "clip": {
+        "start": "00:42",
+        "end": "01:10"
+      },
+      "annotations": [
+        {
+          "t": "丛林秋千",
+          "d": "荡向雨林深处的经典打卡",
+          "ax": 36,
+          "ay": 30,
+          "side": "left"
+        },
+        {
+          "t": "德格拉朗梯田",
+          "d": "《神庙逃亡》同款层叠梯田",
+          "ax": 64,
+          "ay": 44,
+          "side": "right"
+        },
+        {
+          "t": "阿勇河漂流",
+          "d": "漂流 + ATV，雨林里越玩越野",
+          "ax": 50,
+          "ay": 80,
+          "side": "left"
+        }
+      ],
+      "body": [
+        {
+          "h": "乌布的气质",
+          "type": "para",
+          "text": [
+            "从南部一路往北就是乌布——巴厘岛的人文艺术与热带雨林核心。这里节奏慢、绿意浓，适合喜欢发呆、瑜伽、身心疗愈的人多住几天。"
+          ]
+        },
+        {
+          "h": "招牌体验",
+          "type": "list",
+          "items": [
+            "丛林秋千：荡向雨林深处的经典打卡",
+            "《神庙逃亡》同款德格拉朗梯田",
+            "阿勇河漂流 + ATV 越野越玩越野",
+            "鲜花 SPA、瑜伽与音疗（Sound Healing）",
+            "乌布大皇宫看雷贡舞演出"
+          ]
+        },
+        {
+          "h": "客观弊端",
+          "type": "tips",
+          "items": [
+            "区域内非常堵车，行程别排太满",
+            "几乎没有 club 与夜生活，蹦迪人群不适合",
+            "山路较多，晕车者备好晕车药"
+          ]
+        }
+      ],
+      "realPhotos": [
+        {
+          "url": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/f89331eee02e4de4a189c27dbfeddedd.jpg~tplv-xobrcjvdq7-image.jpeg?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=9ApbbF2W0GFiDFBQSX2%2Bp5uUMEc%3D",
+          "cap": "乌布人文与雨林（00:51）"
+        },
+        {
+          "url": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/e06f3ff2bc874e8fbc1abcdf21dd58a3.jpg~tplv-xobrcjvdq7-image.jpeg?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=TM4gdMR2c3Qi7GqdHrzwq3fx20Y%3D",
+          "cap": "丛林秋千与梯田（01:04）"
+        }
+      ],
+      "daysSuggest": 2.5,
+      "food": [
+        {
+          "name": "乌布有机沙拉brunch",
+          "budget": 95,
+          "defaultOn": true,
+          "image": "media/bali/bali-food-salad.png",
+          "note": "雨林区健康轻食代表，蔬果新鲜、适合瑜伽后补充"
+        },
+        {
+          "name": "烤乳猪 Babi Guling",
+          "budget": 70,
+          "defaultOn": true,
+          "image": "media/bali/bali-food-babiguling.png",
+          "note": "乌布本地灵魂菜，皮脆肉嫩，来乌布必吃一回"
+        }
+      ],
+      "stay": [
+        {
+          "name": "雨林泳池别墅",
+          "budget": 1100,
+          "nights": 2,
+          "defaultOn": false,
+          "image": "media/bali/bali-stay-ubud.png",
+          "note": "绿意环绕、私密泳池，适合慢节奏发呆疗愈"
+        },
+        {
+          "name": "乌布中心精品酒店",
+          "budget": 520,
+          "nights": 2,
+          "defaultOn": true,
+          "image": "media/bali/bali-stay-ubud.png",
+          "note": "步行可达皇宫与市集，人文打卡动线更紧凑"
+        }
+      ],
+      "play": [
+        {
+          "name": "丛林秋千",
+          "budget": 220,
+          "defaultOn": true,
+          "image": "media/bali/bali-play-swing.png",
+          "note": "荡向雨林的经典打卡，乌布视觉记忆点"
+        },
+        {
+          "name": "阿勇河漂流",
+          "budget": 380,
+          "defaultOn": true,
+          "image": "media/bali/bali-play-raft.png",
+          "note": "雨林河道漂流，刺激但不极端，半日耗尽最合适"
+        },
+        {
+          "name": "鲜花 SPA 90min",
+          "budget": 300,
+          "defaultOn": false,
+          "image": "media/bali/bali-play-spa.png",
+          "note": "乌布疗愈名片，漂流/秋千后放松肌肉很值"
+        }
+      ],
+      "packing": [
+        {
+          "name": "驱蚊液",
+          "note": "雨林蚊虫多，傍晚梯田与别墅尤其需要"
+        },
+        {
+          "name": "运动鞋",
+          "note": "梯田石阶与漂流集合点步道湿滑，拖鞋不够稳"
+        },
+        {
+          "name": "瑜伽服",
+          "note": "乌布瑜伽/音疗课程多，速干面料最舒服"
+        },
+        {
+          "name": "薄长袖",
+          "note": "山里早晚温差大，也能防蚊防晒"
+        },
+        {
+          "name": "湿巾",
+          "note": "漂流/ATV 后一身泥水，车上擦脸擦手很方便"
+        }
+      ],
+      "routeOrder": 3
+    },
+    {
+      "x": 30,
+      "y": 60,
+      "label": "仓谷 · 活力站",
+      "tag": "STOP 4 · 活力",
+      "name": "仓谷 Canggu",
+      "en": "Canggu · Vibe & Fitness",
+      "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/5251449140de49fea8c06a1b151c5351.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784973600&x-orig-sign=toMY5cJqXAoOYl8J9c9x5sMfogM%3D",
+      "desc": "被称为'巴厘岛体校'——热门 club、青旅、健身、跑团都在这，还有漂亮的白人饭、咖啡和餐厅。喜欢年轻氛围、有活力生活方式的，就去仓谷。",
+      "meta": [
+        [
+          "氛围",
+          "年轻 · 活力"
+        ],
+        [
+          "聚集",
+          "club · 青旅"
+        ],
+        [
+          "标签",
+          "健身 · 跑团"
+        ],
+        [
+          "餐饮",
+          "白人饭 · 咖啡"
+        ]
+      ],
+      "note": "想要热闹和运动氛围，仓谷最对味",
+      "clip": {
+        "start": "01:02",
+        "end": "01:20"
+      },
+      "annotations": [
+        {
+          "t": "海边 club",
+          "d": "白天冲浪、晚上蹦迪的活力聚集地",
+          "ax": 38,
+          "ay": 30,
+          "side": "left"
+        },
+        {
+          "t": "健身跑团",
+          "d": "‘巴厘岛体校’的运动人群大本营",
+          "ax": 64,
+          "ay": 46,
+          "side": "right"
+        },
+        {
+          "t": "精品咖啡",
+          "d": "网红‘白人饭’与 brunch 餐厅密集",
+          "ax": 48,
+          "ay": 80,
+          "side": "left"
+        }
+      ],
+      "body": [
+        {
+          "h": "‘巴厘岛体校’是什么梗",
+          "type": "para",
+          "text": [
+            "仓谷被戏称为‘巴厘岛体校’：健身房、跑团、冲浪、瑜伽人群高度聚集，白天运动、晚上蹦迪，年轻与活力是这里的关键词。"
+          ]
+        },
+        {
+          "h": "适合与不适合",
+          "type": "table",
+          "rows": [
+            [
+              "适合",
+              "爱夜生活、健身、社交与咖啡馆文化的人"
+            ],
+            [
+              "不适合",
+              "想要极致安静度假或带娃养老式旅行"
+            ],
+            [
+              "餐饮",
+              "网红‘白人饭’、精品咖啡与 brunch 餐厅密集"
+            ]
+          ]
+        }
+      ],
+      "realPhotos": [
+        {
+          "url": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/475776cc61b7415394cd90b2a12750f5.jpg~tplv-xobrcjvdq7-image.jpeg?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=AMuVrD%2Fjb%2BNfNnEGlWKFR9T5lfo%3D",
+          "cap": "仓谷活力氛围（01:17）"
+        }
+      ],
+      "daysSuggest": 1.5,
+      "food": [
+        {
+          "name": "白人饭 Brunch",
+          "budget": 110,
+          "defaultOn": true,
+          "image": "media/bali/bali-food-brunch.png",
+          "note": "仓谷网红早午餐密集，摆盘好看也真好吃"
+        },
+        {
+          "name": "精品咖啡",
+          "budget": 45,
+          "defaultOn": true,
+          "image": "media/bali/bali-food-coffee.png",
+          "note": "冲浪/健身前后续命，精品豆与氛围都在线"
+        }
+      ],
+      "stay": [
+        {
+          "name": "仓谷设计青旅/酒店",
+          "budget": 380,
+          "nights": 1,
+          "defaultOn": true,
+          "image": "media/bali/bali-stay-canggu.png",
+          "note": "社交与设计感兼得，夜生活与健身动线近"
+        },
+        {
+          "name": "海边别墅",
+          "budget": 1400,
+          "nights": 1,
+          "defaultOn": false,
+          "image": "media/bali/bali-stay-canggu.png",
+          "note": "想安静一点又离沙滩近，适合小团体包栋"
+        }
+      ],
+      "play": [
+        {
+          "name": "健身房日卡",
+          "budget": 120,
+          "defaultOn": false,
+          "image": "media/bali/bali-play-club.png",
+          "note": "体验‘巴厘岛体校’氛围，跟当地跑团同频一天"
+        },
+        {
+          "name": "Club 门票+酒水",
+          "budget": 260,
+          "defaultOn": true,
+          "image": "media/bali/bali-play-club.png",
+          "note": "仓谷夜生活核心，白天冲浪晚上蹦迪的闭环"
+        }
+      ],
+      "packing": [
+        {
+          "name": "运动鞋",
+          "note": "仓谷跑团与健身房多，板鞋/帆布鞋跑不动"
+        },
+        {
+          "name": "夜店穿搭",
+          "note": "Club 着装有门槛，沙滩装进不去场"
+        },
+        {
+          "name": "充电宝",
+          "note": "白天刷社媒晚上蹦迪，耗电很快"
+        },
+        {
+          "name": "防晒帽",
+          "note": "海边骑车与 brunch 露台暴晒，帽檐比墨镜更管用"
+        }
+      ],
+      "routeOrder": 4
+    },
+    {
+      "x": 60,
+      "y": 22,
+      "label": "罗威纳 · 海豚站",
+      "tag": "STOP 5 · 海豚",
+      "name": "罗威纳 Lovina",
+      "en": "Lovina · Wild Dolphins",
+      "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/3981da3a82e948818b798945c99cc99a.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784973600&x-orig-sign=xo%2BGKowYsnnJeEvgAvMNhIpKoRM%3D",
+      "desc": "从乌布继续往北就是罗威纳——大名鼎鼎的追海豚地。建议找海边酒店住下，跟当地路边船家谈好价格，次日船长在约定地点等你。离南部车程约 3 小时，一定要住当地、别当日往返。",
+      "meta": [
+        [
+          "招牌",
+          "野生海豚观测"
+        ],
+        [
+          "距南部",
+          "车程约 3 小时"
+        ],
+        [
+          "做法",
+          "住海边 + 找船家"
+        ],
+        [
+          "提醒",
+          "不可当日往返"
+        ]
+      ],
+      "note": "直接对接路边船家，最方便也最划算",
+      "clip": {
+        "start": "01:10",
+        "end": "01:40"
+      },
+      "annotations": [
+        {
+          "t": "野生海豚群",
+          "d": "清晨出海，日出时分最活跃",
+          "ax": 40,
+          "ay": 30,
+          "side": "left"
+        },
+        {
+          "t": "路边船家",
+          "d": "傍晚谈好价格，次日约定点上船",
+          "ax": 64,
+          "ay": 46,
+          "side": "right"
+        },
+        {
+          "t": "海边酒店",
+          "d": "务必住当地一晚，别当日往返",
+          "ax": 48,
+          "ay": 80,
+          "side": "left"
+        }
+      ],
+      "body": [
+        {
+          "h": "追海豚的正确打开方式",
+          "type": "para",
+          "text": [
+            "罗威纳在巴厘岛北部，以清晨出海看野生海豚闻名。离南部车程约 3 小时，务必在当地住一晚，别妄想当天往返。"
+          ]
+        },
+        {
+          "h": "操作步骤",
+          "type": "list",
+          "items": [
+            "提前订一家海边酒店住下",
+            "傍晚跟路边本地船家谈好价格与时间",
+            "次日清晨在约定地点上船出海",
+            "日出时分海豚群最活跃，成功率最高"
+          ]
+        },
+        {
+          "h": "省钱与避坑",
+          "type": "tips",
+          "items": [
+            "直接找路边船家往往比酒店代订更划算",
+            "谈价先讲好人数、时长与是否含浮潜",
+            "海上颠簸，晕船者提前吃药并坐船中部"
+          ]
+        }
+      ],
+      "realPhotos": [
+        {
+          "url": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/29e1524c5c204f14b1800e490f74e639.jpg~tplv-xobrcjvdq7-image.jpeg?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=%2FlrKxiI0H1zkuU%2B8t5PSKe0RyHQ%3D",
+          "cap": "罗威纳追海豚（01:30）"
+        }
+      ],
+      "daysSuggest": 1,
+      "food": [
+        {
+          "name": "海边海鲜晚餐",
+          "budget": 130,
+          "defaultOn": true,
+          "image": "media/bali/bali-food-lovina.png",
+          "note": "追海豚前一夜的海边晚餐，新鲜且收工方便"
+        }
+      ],
+      "stay": [
+        {
+          "name": "罗威纳海边酒店",
+          "budget": 420,
+          "nights": 1,
+          "note": "务必住当地一晚，清晨出海才赶得上海豚活跃时段",
+          "defaultOn": true,
+          "image": "media/bali/bali-stay-lovina.png"
+        }
+      ],
+      "play": [
+        {
+          "name": "追海豚出海",
+          "budget": 180,
+          "note": "直接跟路边船家议价最划算，日出时分成功率最高",
+          "defaultOn": true,
+          "image": "media/bali/bali-play-dolphin.png"
+        }
+      ],
+      "packing": [
+        {
+          "name": "晕车药",
+          "note": "出海颠簸明显，晕船者上船前必须吃"
+        },
+        {
+          "name": "薄外套",
+          "note": "清晨海风凉，日出前后需要加一层"
+        },
+        {
+          "name": "防水袋",
+          "note": "浪花会打湿随身包，证件手机放防水袋更稳"
+        },
+        {
+          "name": "现金小额",
+          "note": "船家多收现金小费与议价，小面额更好谈"
+        }
+      ],
+      "routeOrder": 5
+    },
+    {
+      "x": 78,
+      "y": 78,
+      "label": "科莫多 · 加餐",
+      "tag": "OPTION · 延伸",
+      "name": "科莫多 · 粉红沙滩",
+      "en": "Komodo · Pink Beach",
+      "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/3981da3a82e948818b798945c99cc99a.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784973600&x-orig-sign=xo%2BGKowYsnnJeEvgAvMNhIpKoRM%3D",
+      "desc": "如果还想去科莫多国家公园看粉红沙滩，需要坐飞机：必须从罗威纳包车返回巴厘岛南部，再搭航班前往，暂无直达交通。属于行程的进阶延伸。",
+      "meta": [
+        [
+          "看点",
+          "粉红沙滩"
+        ],
+        [
+          "交通",
+          "需返回南部飞"
+        ],
+        [
+          "性质",
+          "进阶延伸"
+        ],
+        [
+          "提示",
+          "无直达"
+        ]
+      ],
+      "note": "时间充裕再加这一站，需绕回南部转机",
+      "clip": {
+        "start": "01:40",
+        "end": "01:56"
+      },
+      "annotations": [
+        {
+          "t": "粉红沙滩",
+          "d": "世界级景观，红珊瑚碎屑染成粉色",
+          "ax": 42,
+          "ay": 32,
+          "side": "left"
+        },
+        {
+          "t": "转机链路",
+          "d": "需从罗威纳回南部再飞，无直达",
+          "ax": 62,
+          "ay": 52,
+          "side": "right"
+        }
+      ],
+      "body": [
+        {
+          "h": "值不值得加这一站",
+          "type": "para",
+          "text": [
+            "科莫多国家公园的粉红沙滩是世界级景观，但交通成本高：必须从罗威纳包车返回南部，再搭航班前往，暂无直达。时间充裕、预算宽松再考虑。"
+          ]
+        },
+        {
+          "h": "交通链路",
+          "type": "table",
+          "rows": [
+            [
+              "第一段",
+              "罗威纳 → 南部（包车约 3 小时）"
+            ],
+            [
+              "第二段",
+              "南部机场 → 科莫多（航班）"
+            ],
+            [
+              "性质",
+              "进阶延伸，非核心必去"
+            ]
+          ]
+        }
+      ],
+      "realPhotos": [
+        {
+          "url": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/b62a6ff0924d43959cb38ab20d1a061e.jpg~tplv-xobrcjvdq7-image.jpeg?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=ueDJoFEwvopHw15q7uToo6emRiA%3D",
+          "cap": "结尾 · 科莫多延伸说明（01:43）"
+        }
+      ],
+      "daysSuggest": 2,
+      "goDefault": false,
+      "food": [
+        {
+          "name": "船上简餐",
+          "budget": 100,
+          "defaultOn": true,
+          "image": "media/bali/bali-food-boat.png",
+          "note": "一日游船上补给，岛上餐饮选择少，提前吃饱更安心"
+        }
+      ],
+      "stay": [
+        {
+          "name": "拉布安巴焦酒店",
+          "budget": 550,
+          "nights": 1,
+          "defaultOn": true,
+          "image": "media/bali/bali-stay-bajo.png",
+          "note": "科莫多出海门户，早班船集合点近、少赶路"
+        }
+      ],
+      "play": [
+        {
+          "name": "粉红沙滩一日游",
+          "budget": 680,
+          "defaultOn": true,
+          "image": "media/bali/bali-play-pinkbeach.png",
+          "note": "红珊瑚碎屑染成粉色，世界级沙滩，来科莫多的主因"
+        },
+        {
+          "name": "南部→科莫多机票",
+          "budget": 900,
+          "defaultOn": true,
+          "image": "media/bali/bali-play-flight.png",
+          "note": "无直达，必须回南部再飞，时间预算要单独留"
+        }
+      ],
+      "packing": [
+        {
+          "name": "浮潜鞋",
+          "note": "珊瑚与礁石扎脚，普通拖鞋不适合下水"
+        },
+        {
+          "name": "速干衣",
+          "note": "一天多次上下水，棉质衣服湿了很难干"
+        },
+        {
+          "name": "防水袋",
+          "note": "快艇浪大，证件与电子设备必须防水"
+        },
+        {
+          "name": "护照复印件",
+          "note": "进国家公园与岛上检查常要证件，复印件备用更稳"
+        }
+      ],
+      "routeOrder": 6
+    }
+  ]
+};
+
+(function(){
+  const D = window.FLIPBOOK;
+  if(!D){document.body.innerHTML='<p style="padding:40px">缺少数据：window.FLIPBOOK 未注入</p>';return;}
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+  const params=new URLSearchParams(location.search);
+  const embedded=params.has('embed')||(window.self!==window.top);
+  if(embedded) document.body.classList.add('embed');
+  document.body.dataset.theme = (D.meta.theme)||'travel';
+  document.title = D.meta.title + ' · 交互图鉴';
+
+  document.getElementById('crumbHome').textContent = D.meta.title + (D.meta.enTitle? ' · '+D.meta.enTitle : '');
+  document.getElementById('homeTitle').textContent = D.meta.title;
+  document.getElementById('homeSub').textContent = D.meta.subtitle||'';
+  document.getElementById('homeNote').textContent = D.meta.footer||'';
+  document.getElementById('hintText').textContent = D.meta.hint||'点击光点查看细节';
+  document.getElementById('mainImg').src = D.overview.image;
+
+  if(D.meta.sourceVideo){
+    document.getElementById('srcLine').innerHTML =
+      '内容分析自：<a href="'+esc(D.meta.sourceVideo.url)+'" target="_blank">'+ esc(D.meta.sourceVideo.title||'原视频') +'</a>';
+  }
+
+  const mapStage=document.getElementById('mapStage');
+  const factsSlot=document.getElementById('factsSlot');
+  const homeCanvas=document.getElementById('homeCanvas');
+  const narrowMq=window.matchMedia('(max-width:760px)');
+
+  // 数据档案卡：宽屏浮在地图旁，窄屏落到图下方，避免遮挡
+  let factsheetEl=null;
+  if(D.overview.facts && D.overview.facts.length){
+    factsheetEl=document.createElement('div');
+    factsheetEl.className='factsheet '+(D.overview.factsSide||'right');
+    let html='<h4>'+esc(D.overview.factsTitle||'DATA · 数据档案')+'</h4>';
+    D.overview.facts.forEach(f=>{html+='<div class="row"><span class="k">'+esc(f.k)+'</span><span class="v">'+esc(f.v)+'</span></div>';});
+    factsheetEl.innerHTML=html;
+  }
+  function placeFactsheet(){
+    if(!factsheetEl) return;
+    if(narrowMq.matches){
+      factsSlot.appendChild(factsheetEl);
+    }else{
+      homeCanvas.appendChild(factsheetEl);
+    }
+  }
+  placeFactsheet();
+  if(narrowMq.addEventListener) narrowMq.addEventListener('change', placeFactsheet);
+  else if(narrowMq.addListener) narrowMq.addListener(placeFactsheet);
+
+  // 热点：挂在 map-stage 上，百分比相对插画本身
+  D.cards.forEach((c,i)=>{
+    const h=document.createElement('div');
+    const x=c.x==null?50:c.x, y=c.y==null?50:c.y;
+    let cls='hotspot';
+    if(x<30) cls+=' tip-right';
+    else if(x>70) cls+=' tip-left';
+    if(y<24) cls+=' tip-below';
+    h.className=cls;
+    h.style.left=x+'%';h.style.top=y+'%';
+    h.innerHTML='<span class="ping" aria-hidden="true"></span><span class="tip">'+esc(c.label)+'</span>';
+    h.onclick=()=>openDetail(i);
+    mapStage.appendChild(h);
+  });
+
+  // 总览级组件（时间轴等）→ 工具按钮；route 由旅行「生成我的攻略」承接，不再显示「规划我的路线」
+  const OV = D.overview.widget;
+  if(OV && OV.type !== 'route'){
+    const tb=document.getElementById('toolsBtn');
+    tb.style.display='flex';
+    document.getElementById('toolsLabel').textContent = OV.button || (OV.type==='timeline'?'查看时间轴':'互动工具');
+  }
+
+  const sHome=document.getElementById('scene-home'),sDetail=document.getElementById('scene-detail');
+  const crumbSep=document.getElementById('crumbSep'),crumbDetail=document.getElementById('crumbDetail'),crumbHome=document.getElementById('crumbHome');
+
+  /* ---------- 富内容区块渲染 ---------- */
+  function renderBody(host,blocks){
+    host.innerHTML='';
+    (blocks||[]).forEach(b=>{
+      const d=document.createElement('div');d.className='blk';
+      if(b.h){d.innerHTML+='<div class="blk-h">'+esc(b.h)+'</div>';}
+      if(b.type==='para'||(!b.type&&b.text)){
+        (Array.isArray(b.text)?b.text:[b.text]).forEach(t=>d.innerHTML+='<p>'+esc(t)+'</p>');
+      }else if(b.type==='list'){
+        let ul='<ul class="pts">';(b.items||[]).forEach(t=>ul+='<li>'+esc(t)+'</li>');ul+='</ul>';d.innerHTML+=ul;
+      }else if(b.type==='table'){
+        let tb='<table class="kv">';(b.rows||[]).forEach(r=>tb+='<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td></tr>');tb+='</table>';d.innerHTML+=tb;
+      }else if(b.type==='tips'){
+        let t='<div class="tips-box"><div class="th">'+esc(b.h||'注意事项')+'</div><ul>';(b.items||[]).forEach(x=>t+='<li>'+esc(x)+'</li>');t+='</ul></div>';
+        d.innerHTML=t;
+      }else if(b.type==='budget'){
+        let t='<table class="budget"><tr><th>'+esc((b.cols&&b.cols[0])||'项目')+'</th><th>'+esc((b.cols&&b.cols[1])||'金额')+'</th></tr>';
+        let sum=0,hasNum=true;
+        (b.rows||[]).forEach(r=>{t+='<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td></tr>';const n=parseFloat(String(r[1]).replace(/[^\d.]/g,''));if(isNaN(n))hasNum=false;else sum+=n;});
+        if(b.total){t+='<tr class="total"><td>'+esc(b.total[0])+'</td><td>'+esc(b.total[1])+'</td></tr>';}
+        else if(hasNum&&(b.rows||[]).length){t+='<tr class="total"><td>合计</td><td>≈ '+sum+'</td></tr>';}
+        t+='</table>';d.innerHTML+=t;
+      }else if(b.type==='checklist'){
+        let ul='<ul class="checklist">';(b.items||[]).forEach(x=>ul+='<li onclick="this.classList.toggle(\'done\')"><span class="box">✓</span><span>'+esc(x)+'</span></li>');ul+='</ul>';d.innerHTML+=ul;
+      }
+      host.appendChild(d);
+    });
+  }
+
+  /* ---------- 真实图片图库 ---------- */
+  function renderGallery(host,photos){
+    host.innerHTML='';
+    if(!photos||!photos.length)return;
+    const wrap=document.createElement('div');
+    wrap.innerHTML='<div class="blk-h">视频实拍参考 <span class="real-badge">REAL · 来自原视频</span></div>';
+    const g=document.createElement('div');g.className='gallery';
+    photos.forEach(p=>{
+      const fig=document.createElement('figure');
+      fig.innerHTML='<img src="'+esc(p.url)+'" alt=""><figcaption>'+esc(p.cap||'')+'</figcaption>';
+      fig.onclick=()=>openLightbox(p.url,p.cap||'');
+      g.appendChild(fig);
+    });
+    wrap.appendChild(g);host.appendChild(wrap);
+  }
+
+  /* ---------- 组件引擎 ---------- */
+  function renderWidget(host,w){
+    host.innerHTML='';
+    if(!w)return;
+    const box=document.createElement('div');box.className='widget';
+    box.innerHTML='<div class="wtitle">'+esc(w.title||'互动组件')+'</div>';
+    const body=document.createElement('div');box.appendChild(body);host.appendChild(box);
+    ({timeline:wTimeline,stepper:wStepper,recipe:wRecipe,route:wRoute}[w.type]||(()=>{}))(body,w);
+  }
+
+  function wTimeline(host,w){
+    const tl=document.createElement('div');tl.className='timeline';
+    (w.events||[]).forEach(e=>{
+      const it=document.createElement('div');it.className='tl-item';
+      it.innerHTML='<div class="tl-year">'+esc(e.year||'')+'</div><div class="tl-title">'+esc(e.title||'')+'</div><div class="tl-desc">'+esc(e.desc||'')+'</div>';
+      tl.appendChild(it);
+    });
+    host.appendChild(tl);
+  }
+
+  function wStepper(host,w){
+    const steps=w.steps||[];let cur=0;
+    const nav=document.createElement('div');nav.className='steps';
+    const body=document.createElement('div');body.className='sbody';
+    const foot=document.createElement('div');foot.className='snav';
+    const prev=document.createElement('button');prev.className='btn ghost';prev.textContent='← 上一步';
+    const next=document.createElement('button');next.className='btn';next.textContent='下一步 →';
+    foot.appendChild(prev);foot.appendChild(next);
+    steps.forEach((s,i)=>{const n=document.createElement('div');n.className='snum';n.textContent=(i+1);n.onclick=()=>{cur=i;draw();};nav.appendChild(n);});
+    function draw(){
+      [...nav.children].forEach((n,i)=>{n.className='snum'+(i===cur?' active':i<cur?' done':'');});
+      const s=steps[cur]||{};
+      body.innerHTML='<h5>'+esc(s.title||('步骤 '+(cur+1)))+'</h5>'+(s.detail?'<p>'+esc(s.detail)+'</p>':'')+(s.tip?'<div class="stip">TIP · '+esc(s.tip)+'</div>':'');
+      prev.disabled=cur===0;next.disabled=cur===steps.length-1;
+    }
+    prev.onclick=()=>{if(cur>0){cur--;draw();}};next.onclick=()=>{if(cur<steps.length-1){cur++;draw();}};
+    host.appendChild(nav);host.appendChild(body);host.appendChild(foot);draw();
+  }
+
+  function wRecipe(host,w){
+    const base=w.baseServings||1;let n=base;
+    const have=new Set();
+    const ctrl=document.createElement('div');ctrl.className='ctrl';
+    ctrl.innerHTML='<span>用餐人数</span>';
+    const num=document.createElement('div');num.className='stepper-num';
+    num.innerHTML='<button>−</button><span class="val">'+n+'</span><button>＋</button>';
+    ctrl.appendChild(num);
+    const persp=document.createElement('span');persp.style.color='var(--muted)';persp.style.fontSize='13px';persp.textContent='（基准 '+base+' 人份，勾选“我已有”自动从清单剔除）';
+    ctrl.appendChild(persp);
+    const ul=document.createElement('ul');ul.className='ing';
+    const hint=document.createElement('div');hint.className='hint';hint.textContent=w.hint||'';
+    function fmt(q){const v=q*n/base;return (Math.round(v*100)/100);}
+    function draw(){
+      num.querySelector('.val').textContent=n;
+      ul.innerHTML='';
+      (w.ingredients||[]).forEach((ig,i)=>{
+        const li=document.createElement('li');if(have.has(i))li.className='have';
+        li.innerHTML='<span class="nm"><span class="box" style="width:16px;height:16px;border:1.5px solid var(--accent);border-radius:5px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px;'+(have.has(i)?'background:var(--accent)':'')+'">'+(have.has(i)?'✓':'')+'</span><span>'+esc(ig.name)+'</span></span><span class="qty">'+fmt(ig.qty)+' '+esc(ig.unit||'')+'</span>';
+        li.onclick=()=>{have.has(i)?have.delete(i):have.add(i);draw();};
+        ul.appendChild(li);
+      });
+    }
+    num.children[0].onclick=()=>{if(n>1){n--;draw();}};
+    num.children[2].onclick=()=>{if(n<20){n++;draw();}};
+    host.appendChild(ctrl);host.appendChild(ul);if(w.hint)host.appendChild(hint);draw();
+  }
+
+  function wRoute(host,w){
+    const stops=w.stops||[];const sel=new Set(stops.map((_,i)=>i));
+    const picker=document.createElement('div');picker.className='picker';
+    stops.forEach((s,i)=>{
+      const row=document.createElement('div');row.className='stop-pick on';
+      row.innerHTML='<span class="box">✓</span><span>'+esc(s.name)+'</span><span class="st-tag">'+esc(s.tag||'')+'</span>';
+      row.onclick=()=>{if(sel.has(i)){sel.delete(i);row.classList.remove('on');row.querySelector('.box').textContent='';}else{sel.add(i);row.classList.add('on');row.querySelector('.box').textContent='✓';}};
+      picker.appendChild(row);
+    });
+    const gen=document.createElement('button');gen.className='btn';gen.textContent='生成我的路线图 →';gen.style.marginBottom='4px';
+    const result=document.createElement('div');result.className='result';
+    gen.onclick=()=>{
+      const chosen=stops.filter((_,i)=>sel.has(i));
+      if(!chosen.length){result.innerHTML='<div class="r-meta">请至少选择一个目的地。</div>';return;}
+      let h='<div class="blk-h" style="margin-bottom:14px">你的专属动线（共 '+chosen.length+' 站）</div>';
+      chosen.forEach((s,i)=>{
+        h+='<div class="r-stop"><div class="r-name">'+(i+1)+'. '+esc(s.name)+'</div>';
+        if(s.stay)h+='<div class="r-meta">建议停留：'+esc(s.stay)+(s.tip?' · '+esc(s.tip):'')+'</div>';
+        if(i<chosen.length-1&&s.moveNext)h+='<span class="r-move">↓ '+esc(s.moveNext)+'</span>';
+        h+='</div>';
+      });
+      result.innerHTML=h;
+    };
+    host.appendChild(picker);host.appendChild(gen);host.appendChild(result);
+    gen.onclick();
+  }
+
+  /* ---------- 灯箱 ---------- */
+  window.openLightbox=function(url,cap){document.getElementById('lbImg').src=url;document.getElementById('lbCap').textContent=cap||'';document.getElementById('lightbox').classList.add('on');};
+  window.closeLightbox=function(){document.getElementById('lightbox').classList.remove('on');};
+
+  /* ---------- 总览抽屉 ---------- */
+  window.openTools=function(){
+    const w=D.overview.widget;if(!w)return;
+    document.getElementById('drawerTitle').textContent=w.title||'互动工具';
+    document.getElementById('drawerSub').textContent=w.subtitle||'';
+    renderWidget_into(document.getElementById('drawerBody'),w);
+    document.getElementById('drawerMask').classList.add('on');
+  };
+  window.closeTools=function(){document.getElementById('drawerMask').classList.remove('on');};
+  function renderWidget_into(host,w){host.innerHTML='';const body=document.createElement('div');host.appendChild(body);({timeline:wTimeline,stepper:wStepper,recipe:wRecipe,route:wRoute}[w.type]||(()=>{}))(body,w);}
+
+  /* ---------- 图解内容 ---------- */
+  // 宽屏：两侧引线气泡；窄屏：左图右文，不再往图上叠标注
+  const annoNarrowMq=window.matchMedia('(max-width:860px)');
+  function renderAnnotations(card){
+    const diagram=document.getElementById('diagram');
+    const svg=document.getElementById('leaders');
+    const split=document.getElementById('detailSplit');
+    const rail=document.getElementById('detailRail');
+    diagram.querySelectorAll('.anno,.dot,.pin,.pin-label').forEach(n=>n.remove());
+    svg.innerHTML='';
+    rail.innerHTML='';
+    rail.hidden=true;
+    split.classList.remove('split-on');
+    const list=card.annotations||[];
+
+    if(annoNarrowMq.matches){
+      // 手机：干净插画 + 右侧介绍栏
+      split.classList.add('split-on');
+      rail.hidden=false;
+      let body='';
+      if(list.length){
+        body=list.map(a=>
+          '<div class="dr-item"><div class="dr-t">'+esc(a.t||'')+'</div>'+
+          (a.d?'<div class="dr-d">'+esc(a.d)+'</div>':'')+'</div>'
+        ).join('');
+      }else if(card.meta&&card.meta.length){
+        body=card.meta.map(m=>
+          '<div class="dr-item"><div class="dr-t">'+esc(m[0])+'</div>'+
+          '<div class="dr-d">'+esc(m[1])+'</div></div>'
+        ).join('');
+      }else if(card.desc){
+        body='<div class="dr-item"><div class="dr-d">'+esc(card.desc)+'</div></div>';
+      }
+      rail.innerHTML='<div class="dr-head">相关介绍</div>'+body;
+      return;
+    }
+
+    if(!list.length) return;
+    // 桌面：经典双侧引线气泡
+    list.forEach((a,idx)=>{
+      const ax=a.ax==null?50:a.ax, ay=a.ay==null?50:a.ay;
+      const side=(a.side==='left'||a.side==='right')?a.side:(ax<50?'left':'right');
+      const wrap=document.createElement('div');
+      wrap.className='anno side-'+side;
+      wrap.style.top=ay+'%';
+      wrap.style.transitionDelay=(0.12+idx*0.1)+'s';
+      wrap.innerHTML='<div class="card"><div class="at">'+esc(a.t||'')+'</div>'+(a.d?'<div class="ad">'+esc(a.d)+'</div>':'')+'</div>';
+      diagram.appendChild(wrap);
+      const dot=document.createElement('div');dot.className='dot';
+      dot.style.left=ax+'%';dot.style.top=ay+'%';
+      dot.style.transitionDelay=(0.12+idx*0.1)+'s';
+      diagram.appendChild(dot);
+      const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1',ax+'%');line.setAttribute('y1',ay+'%');
+      line.setAttribute('x2',(side==='left'?0:100)+'%');line.setAttribute('y2',ay+'%');
+      line.style.transitionDelay=(0.12+idx*0.1)+'s';
+      svg.appendChild(line);
+    });
+  }
+
+  window.openDetail=function(i){
+    const c=D.cards[i];if(!c)return;
+    document.getElementById('detailTag').textContent=c.tag||'';
+    document.getElementById('detailName').textContent=c.name||c.label;
+    document.getElementById('detailEn').textContent=c.en||'';
+    document.getElementById('detailDesc').textContent=c.desc||'';
+    document.getElementById('detailImg').src=c.image||D.overview.image;
+    document.getElementById('detailNote').textContent=c.note||'';
+    const ul=document.getElementById('detailMeta');ul.innerHTML='';
+    (c.meta||[]).forEach(m=>{const li=document.createElement('li');li.innerHTML='<b>'+esc(m[0])+'</b><span>'+esc(m[1])+'</span>';ul.appendChild(li);});
+    renderBody(document.getElementById('detailBody'),c.body);
+    renderGallery(document.getElementById('detailGallery'),c.realPhotos);
+    renderWidget(document.getElementById('detailWidget'),c.widget);
+    document.querySelector('.detail-scroll').scrollTop=0;
+    // 图解标注
+    const diagram=document.getElementById('diagram');
+    diagram.classList.remove('entered');
+    const hasAnno=!!(c.annotations&&c.annotations.length);
+    document.getElementById('diagramHint').style.display=(hasAnno && !annoNarrowMq.matches)?'block':'none';
+    renderAnnotations(c);
+    crumbDetail.textContent=c.name||c.label;
+    // 首页镜头向该地标推进，再切到图解
+    const ms=document.getElementById('mapStage');
+    const hx=(c.x==null?50:c.x), hy=(c.y==null?50:c.y);
+    ms.style.transformOrigin=hx+'% '+hy+'%';
+    ms.classList.add('pushing');
+    sHome.classList.remove('active');sHome.classList.add('zoomed-out');
+    setTimeout(()=>{
+      sDetail.classList.add('active');
+      requestAnimationFrame(()=>requestAnimationFrame(()=>diagram.classList.add('entered')));
+    },430);
+    crumbSep.style.display='inline';crumbDetail.style.display='inline';
+    crumbHome.classList.add('dim');crumbDetail.classList.remove('dim');
+  };
+  window.goHome=function(){
+    const diagram=document.getElementById('diagram');if(diagram)diagram.classList.remove('entered');
+    sDetail.classList.remove('active');
+    const sPlan=document.getElementById('scene-plan');if(sPlan) sPlan.classList.remove('active');
+    sHome.classList.remove('zoomed-out');sHome.classList.add('active');
+    const ms=document.getElementById('mapStage');if(ms) ms.classList.remove('pushing');
+    crumbSep.style.display='none';crumbDetail.style.display='none';crumbHome.classList.remove('dim');
+  };
+})();
+</script>
+<script>
+/* Travel planner — loaded when theme=travel or cards carry food/stay/packing */
+(function () {
+  const D = window.FLIPBOOK;
+  if (!D || !D.cards) return;
+  const isTravel =
+    (D.meta && D.meta.theme === "travel") ||
+    D.cards.some((c) => c.food || c.stay || c.play || c.packing);
+  if (!isTravel) return;
+
+  const esc = (s) =>
+    String(s == null ? "" : s).replace(/[&<>"]/g, (m) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m])
+    );
+  const yen = (n) => "¥" + Math.round(n).toLocaleString("zh-CN");
+
+  // ---- state ----
+  const go = {}; // cardIdx -> bool
+  const pick = {}; // cardIdx -> { food:{}, stay:{}, play:{}, pack:{} }
+  const visited = new Set();
+
+  D.cards.forEach((c, i) => {
+    go[i] = c.goDefault !== false;
+    pick[i] = { food: {}, stay: {}, play: {}, pack: {} };
+    (c.food || []).forEach((it, j) => {
+      pick[i].food[j] = !!it.defaultOn;
+    });
+    (c.stay || []).forEach((it, j) => {
+      pick[i].stay[j] = it.defaultOn !== false;
+    });
+    (c.play || []).forEach((it, j) => {
+      pick[i].play[j] = !!it.defaultOn;
+    });
+    (c.packing || []).forEach((_, j) => {
+      pick[i].pack[j] = true;
+    });
+  });
+
+  function itemBudget(it) {
+    const b = Number(it.budget) || 0;
+    const nights = Number(it.nights) || 1;
+    return it.nights != null ? b * nights : b;
+  }
+
+  function calcTotal() {
+    let total = 0;
+    const lines = [];
+    D.cards.forEach((c, i) => {
+      if (!go[i]) return;
+      const groups = [
+        ["美食", c.food, pick[i].food],
+        ["住宿", c.stay, pick[i].stay],
+        ["游玩", c.play, pick[i].play],
+      ];
+      groups.forEach(([label, arr, map]) => {
+        (arr || []).forEach((it, j) => {
+          if (!map[j]) return;
+          const amt = itemBudget(it);
+          total += amt;
+          lines.push({
+            place: c.name || c.label,
+            kind: label,
+            name: it.name,
+            amt,
+            note: it.note || "",
+          });
+        });
+      });
+    });
+    return { total, lines };
+  }
+
+  function selectedStops() {
+    return D.cards
+      .map((c, i) => ({ c, i }))
+      .filter(({ i }) => go[i]);
+  }
+
+  function orderStops(stops) {
+    if (stops.length <= 1) return stops.slice();
+
+    // 1) Explicit routeOrder on cards
+    if (stops.every(({ c }) => c.routeOrder != null)) {
+      return stops.slice().sort(
+        (a, b) => Number(a.c.routeOrder) - Number(b.c.routeOrder)
+      );
+    }
+
+    // 2) Match overview.widget.route stops by STOP tag / short label (not fuzzy full name)
+    const routeStops = (D.overview.widget && D.overview.widget.stops) || [];
+    if (routeStops.length) {
+      const scored = stops.map((s) => {
+        const tag = (s.c.tag || "").toUpperCase();
+        const label = s.c.label || "";
+        let idx = routeStops.findIndex((r, ri) => {
+          const rt = (r.tag || "").toUpperCase();
+          if (rt && tag && (tag.includes(rt) || rt.includes(tag.replace(/[^A-Z0-9]/g, ""))))
+            return true;
+          // "泗水 · 火山站" vs "泗水 · 火山站"
+          if (r.name && (label === r.name || label.includes(r.name.split("·")[0].trim())))
+            return true;
+          return false;
+        });
+        if (idx < 0) idx = 1000 + s.i;
+        return { s, idx };
+      });
+      scored.sort((a, b) => a.idx - b.idx);
+      return scored.map((x) => x.s);
+    }
+
+    // 3) Keep authoring order (cards[] sequence) — usually narrative route
+    return stops.slice().sort((a, b) => a.i - b.i);
+  }
+
+  function estimateDays(ordered) {
+    let days = 0;
+    ordered.forEach(({ c, i }) => {
+      let d = Number(c.daysSuggest) || 0;
+      if (!d) {
+        const stays = c.stay || [];
+        let nights = 0;
+        stays.forEach((it, j) => {
+          if (pick[i].stay[j]) nights += Number(it.nights) || 1;
+        });
+        d = nights > 0 ? nights : 1;
+      }
+      days += d;
+    });
+    days = Math.max(1, Math.ceil(days));
+    const nights = Math.max(0, days - 1);
+    return { days, nights, label: days + "天" + nights + "晚" };
+  }
+
+  function selectedItems(arr, map) {
+    return (arr || [])
+      .map((x, j) => ({ x, j }))
+      .filter(({ j }) => map[j])
+      .map(({ x }) => x);
+  }
+
+  function isComicUrl(u) {
+    if (!u) return false;
+    // 视频帧多为 jpg；攻略统一只用漫画/插画（png 或本地 media）
+    if (/\.jpe?g(\?|#|$)/i.test(u)) return false;
+    return true;
+  }
+
+  function photoPool(c) {
+    const urls = [];
+    const push = (u) => {
+      if (isComicUrl(u) && !urls.includes(u)) urls.push(u);
+    };
+    // 不用 realPhotos（视频帧）；只用站点插画 + 各项目漫画图
+    push(c.image);
+    ["food", "stay", "play"].forEach((kind) => {
+      (c[kind] || []).forEach((it) => push(it && it.image));
+    });
+    return urls;
+  }
+
+  function itemImage(it, c, used, fallbackIdx) {
+    if (it && isComicUrl(it.image)) return it.image;
+    const pool = photoPool(c);
+    for (let k = 0; k < pool.length; k++) {
+      const u = pool[(fallbackIdx + k) % pool.length];
+      if (!used.has(u)) {
+        used.add(u);
+        return u;
+      }
+    }
+    if (pool.length) return pool[fallbackIdx % pool.length];
+    return isComicUrl(c.image) ? c.image : "";
+  }
+
+  function dayTheme(c, dayPart) {
+    const base = (c.label || c.name || "").split("·")[0].trim();
+    const themes = ["初遇", "慢逛", "深入", "回味", "收官"];
+    return base + " · " + (themes[Math.min(dayPart, themes.length - 1)] || "行程");
+  }
+
+  function buildSlotsForStop(c, i, dayPart, totalParts) {
+    const foods = selectedItems(c.food, pick[i].food);
+    const stays = selectedItems(c.stay, pick[i].stay);
+    const plays = selectedItems(c.play, pick[i].play);
+    const annos = c.annotations || [];
+    const used = new Set();
+    const place = c.name || c.label;
+
+    const playChunk = Math.ceil(plays.length / totalParts) || 1;
+    const playsToday = plays.slice(dayPart * playChunk, dayPart * playChunk + playChunk);
+    const foodChunk = Math.ceil(foods.length / totalParts) || 1;
+    const foodsToday = foods.slice(dayPart * foodChunk, dayPart * foodChunk + foodChunk);
+    const stayToday = stays[Math.min(dayPart, Math.max(0, stays.length - 1))];
+    const annoToday = annos[Math.min(dayPart, Math.max(0, annos.length - 1))];
+
+    const slots = [];
+    let imgIdx = dayPart * 3;
+
+    // 上午 · 游玩 / 景点
+    const amPlay = playsToday[0];
+    const amImg = itemImage(amPlay, c, used, imgIdx++);
+    slots.push({
+      key: "am",
+      kind: "play",
+      pill: "上午",
+      time: "09:00 – 12:00",
+      title: amPlay ? amPlay.name : place,
+      body:
+        (amPlay && amPlay.note) ||
+        (annoToday && (annoToday.d || annoToday.t)) ||
+        (c.desc || "").slice(0, 100) ||
+        c.note ||
+        "",
+      bullets: [
+        amPlay ? "游玩 · " + amPlay.name : "打卡 · " + place,
+        annoToday && annoToday.t ? annoToday.t + (annoToday.d ? "：" + annoToday.d : "") : "",
+        c.note || "",
+      ].filter(Boolean).slice(0, 3),
+      tip: amPlay && amPlay.budget != null ? "预算约 " + yen(itemBudget(amPlay)) : (c.note || ""),
+      visual: amImg,
+      budget: amPlay ? itemBudget(amPlay) : 0,
+      tags: amPlay ? ["游玩", amPlay.name] : ["景点"],
+    });
+
+    // 下午 · 优先第二游玩，否则美食
+    const pmPlay = playsToday[1];
+    const pmFood = foodsToday[0];
+    if (pmPlay) {
+      const img = itemImage(pmPlay, c, used, imgIdx++);
+      slots.push({
+        key: "pm",
+        kind: "play",
+        pill: "下午",
+        time: "14:00 – 17:30",
+        title: pmPlay.name,
+        body: pmPlay.note || (annos[1] && annos[1].d) || "继续探索本地体验",
+        bullets: [
+          "游玩 · " + pmPlay.name,
+          pmPlay.note || "",
+          pmFood ? "顺路觅食 · " + pmFood.name : "",
+        ].filter(Boolean).slice(0, 3),
+        tip: pmPlay.budget != null ? "预算约 " + yen(itemBudget(pmPlay)) : "",
+        visual: img,
+        budget: itemBudget(pmPlay),
+        tags: ["游玩", pmPlay.name],
+      });
+    } else if (pmFood) {
+      const img = itemImage(pmFood, c, used, imgIdx++);
+      const extras = foodsToday.slice(1).map((f) => f.name);
+      slots.push({
+        key: "pm",
+        kind: "food",
+        pill: "下午",
+        time: "12:30 – 17:00",
+        title: pmFood.name,
+        body: [pmFood.note, extras.length ? "还可尝尝：" + extras.join("、") : ""]
+          .filter(Boolean)
+          .join(" · ") || "尝尝当地味道，别赶场",
+        bullets: [
+          "美食 · " + pmFood.name,
+          pmFood.note || "",
+          pmFood.budget != null ? "人均约 " + yen(itemBudget(pmFood)) : "",
+        ].filter(Boolean),
+        tip: "推荐美食，已计入花费",
+        visual: img,
+        budget: itemBudget(pmFood),
+        tags: ["美食", pmFood.name].concat(extras.slice(0, 2)),
+      });
+    } else {
+      const img = itemImage(null, c, used, imgIdx++);
+      slots.push({
+        key: "pm",
+        kind: "free",
+        pill: "下午",
+        time: "14:00 – 17:30",
+        title: (c.label || place) + " · 漫步",
+        body: c.note || "留白给偶遇与拍照，不必排满",
+        bullets: ["自由活动", c.note || "随性走走"].filter(Boolean),
+        tip: "",
+        visual: img,
+        budget: 0,
+        tags: ["自由活动"],
+      });
+    }
+
+    // 晚上 · 住宿为主，可带晚餐
+    const eveFood =
+      foodsToday.length > (pmPlay ? 0 : 1)
+        ? foodsToday[pmPlay ? 0 : Math.min(1, foodsToday.length - 1)]
+        : foodsToday[0];
+    if (stayToday) {
+      const img = itemImage(stayToday, c, used, imgIdx++);
+      const bullets = [
+        "住宿 · " + stayToday.name,
+        stayToday.nights ? "入住 " + stayToday.nights + " 晚" : "",
+        stayToday.note || "",
+        eveFood && (!pmFood || eveFood.name !== pmFood.name)
+          ? "晚餐 · " + eveFood.name
+          : "",
+      ].filter(Boolean);
+      slots.push({
+        key: "eve",
+        kind: "stay",
+        pill: "晚上",
+        time: "19:00 – 21:30",
+        title:
+          stayToday.name + (stayToday.nights ? ` · ${stayToday.nights}晚` : ""),
+        body:
+          stayToday.note ||
+          (eveFood ? "晚餐：" + eveFood.name : "回住所休整，整理明日行程"),
+        bullets,
+        tip:
+          stayToday.budget != null
+            ? "住宿预算约 " + yen(itemBudget(stayToday))
+            : "早点休息，养足体力",
+        visual: img,
+        sideVisual:
+          eveFood && (!pmFood || eveFood.name !== pmFood.name)
+            ? itemImage(eveFood, c, used, imgIdx++)
+            : "",
+        sideLabel: eveFood ? eveFood.name : "",
+        budget: itemBudget(stayToday),
+        tags: ["住宿"].concat(
+          eveFood && (!pmFood || eveFood.name !== pmFood.name)
+            ? ["美食", eveFood.name]
+            : []
+        ),
+      });
+    } else if (eveFood) {
+      const img = itemImage(eveFood, c, used, imgIdx++);
+      slots.push({
+        key: "eve",
+        kind: "food",
+        pill: "晚上",
+        time: "19:00 – 21:30",
+        title: "晚餐 · " + eveFood.name,
+        body: eveFood.note || "结束一天，用一顿本地餐收尾",
+        bullets: ["美食 · " + eveFood.name, eveFood.note || ""].filter(Boolean),
+        tip: eveFood.budget != null ? "人均约 " + yen(itemBudget(eveFood)) : "",
+        visual: img,
+        budget: itemBudget(eveFood),
+        tags: ["美食", eveFood.name],
+      });
+    } else {
+      const img = itemImage(null, c, used, imgIdx++);
+      slots.push({
+        key: "eve",
+        kind: "free",
+        pill: "晚上",
+        time: "19:00 – 21:30",
+        title: "夜色漫步",
+        body: "轻松收尾，为第二天留体力",
+        bullets: ["自由活动"],
+        tip: "",
+        visual: img,
+        budget: 0,
+        tags: ["自由活动"],
+      });
+    }
+
+    // 图库：当日所有独特配图（含美食/住宿）
+    const gallery = [];
+    const pushGal = (src, label, kind) => {
+      if (!isComicUrl(src)) return;
+      if (gallery.some((g) => g.src === src && g.label === label)) return;
+      gallery.push({ src, label, kind: kind || "" });
+    };
+    slots.forEach((s, n) => {
+      pushGal(s.visual, s.title, s.kind);
+      if (s.sideVisual) pushGal(s.sideVisual, s.sideLabel || "美食", "food");
+    });
+    foodsToday.forEach((f) => {
+      if (f.image) pushGal(f.image, f.name, "food");
+    });
+    if (stayToday && stayToday.image)
+      pushGal(stayToday.image, stayToday.name, "stay");
+
+    return {
+      theme: dayTheme(c, dayPart),
+      place,
+      label: c.label || place,
+      tip: c.note || "",
+      image: c.image || "",
+      i,
+      x: c.x,
+      y: c.y,
+      flow: slots.map((s) => s.title),
+      slots,
+      gallery,
+      foods: foodsToday.map((f) => f.name),
+      stays: stayToday
+        ? [stayToday.name + (stayToday.nights ? ` · ${stayToday.nights}晚` : "")]
+        : [],
+      plays: playsToday.map((p) => p.name),
+      packing: (c.packing || [])
+        .filter((_, j) => pick[i].pack[j])
+        .map((x) => (typeof x === "string" ? x : x.name))
+        .slice(0, 4),
+    };
+  }
+
+  function buildDayPlan(ordered, dayInfo) {
+    const days = [];
+    for (let d = 0; d < dayInfo.days; d++) {
+      days.push({ day: d + 1, stops: [], items: [] });
+    }
+    let cursor = 0;
+    ordered.forEach(({ c, i }) => {
+      const weight = Math.max(1, Math.ceil(Number(c.daysSuggest) || 1));
+      for (let p = 0; p < weight; p++) {
+        const slot = Math.min(cursor + p, dayInfo.days - 1);
+        const built = buildSlotsForStop(c, i, p, weight);
+        days[slot].stops.push(built);
+        // keep legacy items for map/compat
+        days[slot].items.push({
+          name: built.place,
+          foods: built.foods,
+          stays: built.stays,
+          plays: built.plays,
+          tip: built.tip,
+          x: built.x,
+          y: built.y,
+          i: built.i,
+        });
+      }
+      cursor += weight;
+      if (cursor > dayInfo.days - 1) cursor = dayInfo.days - 1;
+    });
+    return days.filter((d) => d.stops.length);
+  }
+
+  // ---- chrome ----
+  function ensureChrome() {
+    if (document.getElementById("travelChrome")) return;
+    const bar = document.createElement("div");
+    bar.id = "travelChrome";
+    bar.innerHTML =
+      '<button type="button" class="tv-fab tv-pack" id="tvPackBtn" title="行李清单" aria-label="行李清单">' +
+      '<span class="tv-ico">🧳</span></button>' +
+      '<button type="button" class="tv-fab tv-cash" id="tvCashBtn" title="旅行花费" aria-label="旅行花费">' +
+      '<span class="tv-ico">💰</span><span class="tv-cash-num" id="tvCashNum">¥0</span></button>' +
+      '<button type="button" class="tv-plan-btn" id="tvPlanBtn">生成我的攻略</button>';
+    document.body.appendChild(bar);
+
+    const mask = document.createElement("div");
+    mask.className = "drawer-mask";
+    mask.id = "tvDrawerMask";
+    mask.innerHTML =
+      '<div class="drawer" id="tvDrawer">' +
+      '<button class="x-btn" type="button" id="tvDrawerClose">✕</button>' +
+      "<h3 id=\"tvDrawerTitle\"></h3>" +
+      '<div class="dsub" id="tvDrawerSub"></div>' +
+      '<div id="tvDrawerBody"></div></div>';
+    document.body.appendChild(mask);
+
+    // plan scene
+    const stage = document.querySelector(".stage");
+    if (stage && !document.getElementById("scene-plan")) {
+      const sec = document.createElement("section");
+      sec.className = "scene";
+      sec.id = "scene-plan";
+      sec.innerHTML =
+        '<button class="back-btn" type="button" id="tvPlanBack">← 返回总览</button>' +
+        '<div class="detail-scroll"><div class="detail-inner" id="tvPlanInner"></div></div>';
+      stage.appendChild(sec);
+    }
+
+    document.getElementById("tvPackBtn").onclick = openPackDrawer;
+    document.getElementById("tvCashBtn").onclick = openCashDrawer;
+    document.getElementById("tvPlanBtn").onclick = openPlan;
+    document.getElementById("tvDrawerClose").onclick = closeTvDrawer;
+    document.getElementById("tvDrawerMask").onclick = (e) => {
+      if (e.target.id === "tvDrawerMask") closeTvDrawer();
+    };
+    const back = document.getElementById("tvPlanBack");
+    if (back) back.onclick = () => {
+      document.getElementById("scene-plan").classList.remove("active");
+      document.body.classList.remove("tv-plan-open");
+      if (typeof goHome === "function") goHome();
+    };
+  }
+
+  function refreshCash() {
+    const { total } = calcTotal();
+    const el = document.getElementById("tvCashNum");
+    if (el) el.textContent = yen(total);
+  }
+
+  function openTvDrawer(title, sub, html) {
+    document.getElementById("tvDrawerTitle").textContent = title;
+    document.getElementById("tvDrawerSub").textContent = sub || "";
+    document.getElementById("tvDrawerBody").innerHTML = html;
+    document.getElementById("tvDrawer").classList.remove("tv-drawer-bag");
+    document.getElementById("tvDrawerMask").classList.add("on");
+  }
+  function closeTvDrawer() {
+    document.getElementById("tvDrawerMask").classList.remove("on");
+    document.getElementById("tvDrawer").classList.remove("tv-drawer-bag");
+  }
+
+  function openCashDrawer() {
+    const { total, lines } = calcTotal();
+    let html =
+      '<div class="tv-sum">预计花费合计 <b>' +
+      yen(total) +
+      "</b></div><p class=\"tv-hint\">勾选各地美食 / 住宿 / 游玩后实时累加；取消「想去此地」则不计入该站。</p>";
+    if (!lines.length) {
+      html += '<p class="tv-hint">还没有勾选任何付费项目，去地点详情里选选看～</p>';
+    } else {
+      html += '<ul class="tv-lines">';
+      lines.forEach((l) => {
+        html +=
+          "<li><span class=\"tv-l-k\">" +
+          esc(l.place) +
+          " · " +
+          esc(l.kind) +
+          "</span><span class=\"tv-l-n\">" +
+          esc(l.name) +
+          "</span><span class=\"tv-l-a\">" +
+          yen(l.amt) +
+          "</span></li>";
+      });
+      html += "</ul>";
+    }
+    openTvDrawer("旅行花费", "💰 实时预算明细", html);
+  }
+
+  function packIconFor(name) {
+    const n = String(name || "");
+    const base =
+      (D.overview && D.overview.packIconBase) || "media/bali/pack/";
+    const hit = (keys) => keys.some((k) => n.includes(k));
+    let file = "jacket.png";
+    if (hit(["手套"])) file = "gloves.png";
+    else if (hit(["头灯"])) file = "lamp.png";
+    else if (hit(["面具", "口罩"])) file = "mask.png";
+    else if (hit(["登山鞋", "浮潜"])) file = "boots.png";
+    else if (hit(["现金", "盾"])) file = "cash.png";
+    else if (hit(["泳衣", "泳"])) file = "swim.png";
+    else if (hit(["防晒", "SPF"])) file = "sunscreen.png";
+    else if (hit(["防水手机", "手机袋"])) file = "drybag.png";
+    else if (hit(["防水袋", "防水"])) file = "drybag.png";
+    else if (hit(["拖鞋"])) file = "sneakers.png";
+    else if (hit(["墨镜"])) file = "glasses.png";
+    else if (hit(["驱蚊"])) file = "mosquito.png";
+    else if (hit(["运动鞋", "鞋"])) file = "sneakers.png";
+    else if (hit(["瑜伽", "速干", "薄长袖", "长袖", "湿巾", "夜店", "穿搭"]))
+      file = "jacket.png";
+    else if (hit(["冲锋", "外套", "夹克"])) file = "jacket.png";
+    else if (hit(["充电宝", "电源"])) file = "power.png";
+    else if (hit(["帽"])) file = "hat.png";
+    else if (hit(["药", "晕"])) file = "meds.png";
+    else if (hit(["护照"])) file = "passport.png";
+    return base + file;
+  }
+
+  function collectPackItems() {
+    const map = {};
+    selectedStops().forEach(({ c, i }) => {
+      (c.packing || []).forEach((raw, j) => {
+        const name = typeof raw === "string" ? raw : raw.name;
+        const img =
+          (typeof raw === "object" && raw.image) || packIconFor(name);
+        if (!map[name]) {
+          map[name] = { name, on: false, refs: [], image: img };
+        }
+        map[name].refs.push({ i, j });
+        if (pick[i].pack[j]) map[name].on = true;
+      });
+    });
+    return Object.keys(map)
+      .sort()
+      .map((k) => map[k]);
+  }
+
+  function setPackItemOn(item, on) {
+    item.refs.forEach(({ i, j }) => {
+      pick[i].pack[j] = on;
+    });
+    item.on = on;
+  }
+
+  function packFillRatio(items) {
+    if (!items.length) return 0;
+    const on = items.filter((x) => x.on).length;
+    return on / items.length;
+  }
+
+  function applySuitcaseWeight(stage, ratio) {
+    if (!stage) return;
+    stage.classList.remove("w0", "w1", "w2", "w3");
+    const lvl = ratio < 0.25 ? 0 : ratio < 0.5 ? 1 : ratio < 0.75 ? 2 : 3;
+    stage.classList.add("w" + lvl);
+    const label = stage.querySelector(".tv-bag-weight");
+    if (label) {
+      label.textContent =
+        lvl === 0
+          ? "轻装上阵"
+          : lvl === 1
+          ? "刚刚好"
+          : lvl === 2
+          ? "有点沉了"
+          : "越来越慢…箱子很沉";
+    }
+  }
+
+  function flyPackGhost(fromEl, toEl, imgSrc, mode) {
+    if (!fromEl || !toEl) return;
+    const a = fromEl.getBoundingClientRect();
+    const b = toEl.getBoundingClientRect();
+    const ghost = document.createElement("div");
+    ghost.className = "tv-pack-ghost " + (mode || "in");
+    ghost.innerHTML = '<img src="' + esc(imgSrc) + '" alt="">';
+    document.body.appendChild(ghost);
+    const startX = a.left + a.width / 2;
+    const startY = a.top + a.height / 2;
+    const endX = b.left + b.width / 2;
+    const endY = b.top + b.height / 2;
+    if (mode === "out") {
+      ghost.style.left = endX + "px";
+      ghost.style.top = endY + "px";
+      ghost.style.transform = "translate(-50%,-50%) scale(.55)";
+      ghost.style.opacity = "1";
+      requestAnimationFrame(() => {
+        ghost.style.left = startX + "px";
+        ghost.style.top = startY - 40 + "px";
+        ghost.style.transform = "translate(-50%,-50%) scale(1) rotate(-12deg)";
+        ghost.style.opacity = "0";
+      });
+    } else {
+      ghost.style.left = startX + "px";
+      ghost.style.top = startY + "px";
+      ghost.style.transform = "translate(-50%,-50%) scale(1)";
+      ghost.style.opacity = "1";
+      requestAnimationFrame(() => {
+        ghost.style.left = endX + "px";
+        ghost.style.top = endY + "px";
+        ghost.style.transform = "translate(-50%,-50%) scale(.45)";
+        ghost.style.opacity = "0.15";
+      });
+    }
+    setTimeout(() => ghost.remove(), 620);
+  }
+
+  function openPackDrawer() {
+    const items = collectPackItems();
+    const suitcase =
+      (D.overview && D.overview.packSuitcase) ||
+      "media/bali/pack/suitcase.png";
+
+    let html =
+      '<div class="tv-bag" id="tvBagStage">' +
+      '<div class="tv-bag-case" id="tvBagCase">' +
+      '<img class="tv-bag-img" src="' +
+      esc(suitcase) +
+      '" alt="行李箱">' +
+      '<div class="tv-bag-pile" id="tvBagPile"></div>' +
+      "</div>" +
+      '<div class="tv-bag-weight">轻装上阵</div>' +
+      '<p class="tv-hint">点物件可勾选 / 取消。取消时会从箱子里「拿出来」；勾得越多，箱子越沉、动得越慢。</p>' +
+      "</div>";
+
+    if (!items.length) {
+      html +=
+        '<p class="tv-hint">先勾选想去的地点，各地详情里的行李项会出现在这里～</p>';
+    } else {
+      html += '<div class="tv-pack-grid" id="tvPackGrid">';
+      items.forEach((it, idx) => {
+        html +=
+          '<button type="button" class="tv-pack-item' +
+          (it.on ? " on" : "") +
+          '" data-idx="' +
+          idx +
+          '">' +
+          '<span class="tv-pack-ico"><img src="' +
+          esc(it.image) +
+          '" alt=""></span>' +
+          '<span class="tv-pack-name">' +
+          esc(it.name) +
+          "</span>" +
+          '<span class="tv-pack-tick">' +
+          (it.on ? "✓" : "") +
+          "</span></button>";
+      });
+      html += "</div>";
+    }
+
+    openTvDrawer("行李清单", "🧳 插画行李箱 · 可勾选调整", html);
+    document.getElementById("tvDrawer").classList.add("tv-drawer-bag");
+
+    const stage = document.getElementById("tvBagStage");
+    const caseEl = document.getElementById("tvBagCase");
+    const pile = document.getElementById("tvBagPile");
+    const grid = document.getElementById("tvPackGrid");
+
+    function renderPile() {
+      if (!pile) return;
+      pile.innerHTML = "";
+      items
+        .filter((x) => x.on)
+        .slice(0, 12)
+        .forEach((it, n) => {
+          const s = document.createElement("span");
+          s.className = "tv-bag-chip";
+          s.style.setProperty("--i", String(n));
+          s.innerHTML = '<img src="' + esc(it.image) + '" alt="">';
+          pile.appendChild(s);
+        });
+      applySuitcaseWeight(stage, packFillRatio(items));
+    }
+
+    renderPile();
+
+    if (grid) {
+      grid.querySelectorAll(".tv-pack-item").forEach((btn) => {
+        btn.onclick = () => {
+          const idx = +btn.dataset.idx;
+          const it = items[idx];
+          const next = !it.on;
+          setPackItemOn(it, next);
+          btn.classList.toggle("on", next);
+          btn.querySelector(".tv-pack-tick").textContent = next ? "✓" : "";
+          if (next) {
+            flyPackGhost(btn, caseEl, it.image, "in");
+            caseEl && caseEl.classList.add("swallow");
+            setTimeout(() => caseEl && caseEl.classList.remove("swallow"), 450);
+          } else {
+            flyPackGhost(btn, caseEl, it.image, "out");
+            caseEl && caseEl.classList.add("spit");
+            setTimeout(() => caseEl && caseEl.classList.remove("spit"), 450);
+          }
+          setTimeout(renderPile, 280);
+          // sync detail panel checkboxes if open
+          const panel = document.getElementById("travelPanel");
+          if (panel && panel.querySelector('[data-k="pack"]')) {
+            // soft refresh current detail if any pack rows visible
+            panel.querySelectorAll('.tv-check-list li[data-k="pack"]').forEach((li) => {
+              const j = +li.dataset.j;
+              // find card from visited - use last visited
+              const cardIdx = [...visited].pop();
+              if (cardIdx == null) return;
+              const name =
+                (D.cards[cardIdx].packing || [])[j] &&
+                (typeof D.cards[cardIdx].packing[j] === "string"
+                  ? D.cards[cardIdx].packing[j]
+                  : D.cards[cardIdx].packing[j].name);
+              if (name !== it.name) return;
+              const on = pick[cardIdx].pack[j];
+              li.classList.toggle("on", on);
+              const box = li.querySelector(".tv-box");
+              if (box) box.textContent = on ? "✓" : "";
+            });
+          }
+        };
+      });
+    }
+  }
+
+  // ---- detail panel ----
+  function itemThumb(it, key, card) {
+    const obj = typeof it === "string" ? { name: it } : it || {};
+    const name = obj.name || "";
+    if (obj.image) return obj.image;
+    if (key === "pack") return packIconFor(name);
+    // food / stay / play: prefer sibling comic, then place illustration
+    if (card && card.image && /\.png(\?|$)/i.test(card.image)) return card.image;
+    return packIconFor(name);
+  }
+
+  function renderTravelPanel(cardIdx) {
+    const host = document.getElementById("travelPanel");
+    if (!host) return;
+    const c = D.cards[cardIdx];
+    if (!c) {
+      host.innerHTML = "";
+      return;
+    }
+    visited.add(cardIdx);
+
+    const block = (title, arr, key, withBudget) => {
+      if (!arr || !arr.length) return "";
+      let h = '<div class="tv-block"><div class="tv-bh">' + esc(title) + "</div><ul class=\"tv-check-list\">";
+      arr.forEach((it, j) => {
+        const name = typeof it === "string" ? it : it.name;
+        const on = pick[cardIdx][key][j];
+        const bud =
+          withBudget && typeof it === "object"
+            ? '<span class="tv-bud">' +
+              yen(itemBudget(it)) +
+              (it.nights ? " / " + it.nights + "晚" : "") +
+              "</span>"
+            : "";
+        const note =
+          typeof it === "object" && it.note
+            ? '<div class="tv-note">' + esc(it.note) + "</div>"
+            : "";
+        const thumb = itemThumb(it, key, c);
+        h +=
+          '<li class="' +
+          (on ? "on" : "") +
+          '" data-k="' +
+          key +
+          '" data-j="' +
+          j +
+          '">' +
+          '<span class="tv-box">' +
+          (on ? "✓" : "") +
+          "</span>" +
+          (thumb
+            ? '<span class="tv-thumb"><img src="' +
+              esc(thumb) +
+              '" alt="" loading="lazy"></span>'
+            : "") +
+          '<div class="tv-ci"><div class="tv-cn">' +
+          esc(name) +
+          bud +
+          "</div>" +
+          note +
+          "</div></li>";
+      });
+      h += "</ul></div>";
+      return h;
+    };
+
+    host.innerHTML =
+      '<div class="tv-go">' +
+      '<label class="tv-go-lab"><input type="checkbox" id="tvGoHere" ' +
+      (go[cardIdx] ? "checked" : "") +
+      "> 想去此地（计入行程与花费）</label></div>" +
+      block("美食推荐", c.food, "food", true) +
+      block("住宿推荐", c.stay, "stay", true) +
+      block("游玩项目", c.play, "play", true) +
+      block("行李清单", (c.packing || []).map((x) => (typeof x === "string" ? { name: x } : x)), "pack", false);
+
+    const goEl = document.getElementById("tvGoHere");
+    if (goEl)
+      goEl.onchange = () => {
+        go[cardIdx] = goEl.checked;
+        refreshCash();
+      };
+
+    host.querySelectorAll(".tv-check-list li").forEach((li) => {
+      li.onclick = () => {
+        const k = li.dataset.k;
+        const j = +li.dataset.j;
+        pick[cardIdx][k][j] = !pick[cardIdx][k][j];
+        li.classList.toggle("on", pick[cardIdx][k][j]);
+        li.querySelector(".tv-box").textContent = pick[cardIdx][k][j] ? "✓" : "";
+        refreshCash();
+      };
+    });
+    refreshCash();
+  }
+
+  // ---- personalized plan + map route ----
+  function kindLabel(kind) {
+    return ({ play: "游玩", food: "美食", stay: "住宿", free: "随性" }[kind] || "");
+  }
+
+  function slotHtml(slot, reverse, num) {
+    const tags = (slot.tags || [])
+      .slice(0, 4)
+      .map((t) => '<span class="tv-chip">' + esc(t) + "</span>")
+      .join("");
+    const bullets = (slot.bullets || [])
+      .map((b) => "<li>" + esc(b) + "</li>")
+      .join("");
+    const side =
+      slot.sideVisual
+        ? '<div class="tv-slot-side-wrap">' +
+          '<div class="tv-slot-side"><img src="' +
+          esc(slot.sideVisual) +
+          '" alt="" loading="lazy"></div>' +
+          '<span class="tv-slot-cap">' +
+          esc(slot.sideLabel || "美食") +
+          "</span></div>"
+        : "";
+    return (
+      '<article class="tv-slot kind-' +
+      esc(slot.kind || "") +
+      (reverse ? " reverse" : "") +
+      '">' +
+      '<div class="tv-slot-copy">' +
+      '<div class="tv-slot-meta">' +
+      (num
+        ? '<span class="tv-slot-num">' + num + "</span>"
+        : "") +
+      '<span class="tv-slot-pill">' +
+      esc(slot.pill) +
+      "</span>" +
+      (slot.kind
+        ? '<span class="tv-slot-kind">' + esc(kindLabel(slot.kind)) + "</span>"
+        : "") +
+      '<span class="tv-slot-time">' +
+      esc(slot.time) +
+      "</span></div>" +
+      '<h4 class="tv-slot-title">' +
+      esc(slot.title) +
+      "</h4>" +
+      (slot.body
+        ? '<p class="tv-slot-body">' + esc(slot.body) + "</p>"
+        : "") +
+      (bullets ? '<ul class="tv-slot-bullets">' + bullets + "</ul>" : "") +
+      (slot.tip
+        ? '<div class="tv-tip-box"><span>小贴士</span>' +
+          esc(slot.tip) +
+          "</div>"
+        : "") +
+      (tags ? '<div class="tv-chips">' + tags + "</div>" : "") +
+      "</div>" +
+      '<div class="tv-slot-media">' +
+      '<div class="tv-slot-visual">' +
+      (slot.visual
+        ? '<img src="' + esc(slot.visual) + '" alt="" loading="lazy">'
+        : '<div class="tv-slot-ph"></div>') +
+      "</div>" +
+      '<span class="tv-slot-cap">' +
+      esc(slot.pill) +
+      " · " +
+      esc(slot.title) +
+      "</span>" +
+      side +
+      "</div></article>"
+    );
+  }
+
+  function dayPageHtml(d) {
+    const stop = d.stops[0];
+    const theme = stop ? stop.theme : "行程日";
+    const tip = (d.stops.map((s) => s.tip).filter(Boolean)[0]) || "";
+    const allSlots = [];
+    const packing = [];
+    d.stops.forEach((st) => {
+      (st.slots || []).forEach((s) => allSlots.push(s));
+      (st.packing || []).forEach((p) => {
+        if (!packing.includes(p)) packing.push(p);
+      });
+    });
+
+    const itin = allSlots
+      .map((s) => s.title)
+      .filter(Boolean)
+      .slice(0, 6);
+    const itinHtml = itin.length
+      ? '<div class="tv-itin"><span class="tv-itin-k">行程</span>' +
+        itin
+          .map((t) => "<em>" + esc(t) + "</em>")
+          .join('<span class="tv-itin-sep">→</span>') +
+        "</div>"
+      : "";
+
+    let slotsHtml = "";
+    if (d.stops.length === 1 || allSlots.length <= 4) {
+      allSlots.forEach((slot, si) => {
+        slotsHtml += slotHtml(slot, si % 2 === 1, si + 1);
+      });
+    } else {
+      const pills = [
+        { pill: "上午", time: "09:00 – 12:00" },
+        { pill: "下午", time: "14:00 – 17:30" },
+        { pill: "晚上", time: "19:00 – 21:30" },
+      ];
+      d.stops.slice(0, 3).forEach((st, si) => {
+        const base = (st.slots && st.slots[0]) || {};
+        slotsHtml += slotHtml(
+          {
+            pill: pills[si].pill,
+            time: pills[si].time,
+            kind: "play",
+            title: st.label || st.place,
+            body: st.tip || base.body || "",
+            bullets: (st.plays || []).slice(0, 2).map((p) => "游玩 · " + p)
+              .concat((st.foods || []).slice(0, 1).map((f) => "美食 · " + f))
+              .concat((st.stays || []).slice(0, 1).map((s) => "住宿 · " + s)),
+            tip: st.tip || "",
+            visual: (st.gallery && st.gallery[0] && st.gallery[0].src) || st.image || base.visual || "",
+            tags: ["站点"],
+          },
+          si % 2 === 1,
+          si + 1
+        );
+      });
+    }
+
+    const flow = itin.length ? itin : (stop && stop.flow) || [];
+    const flowHtml = flow
+      .slice(0, 5)
+      .map(
+        (f, n) =>
+          '<span class="tv-flow-node"><i>' +
+          (n + 1) +
+          "</i><em>" +
+          esc(f) +
+          "</em></span>"
+      )
+      .join('<span class="tv-flow-arrow" aria-hidden="true"></span>');
+
+    const tipsHtml = packing.length
+      ? '<div class="tv-day-tips"><div class="tv-day-tips-h">今日行李</div><ul>' +
+        packing.map((p) => "<li>✓ " + esc(p) + "</li>").join("") +
+        "</ul></div>"
+      : tip
+      ? '<div class="tv-day-tips"><div class="tv-day-tips-h">小贴士</div><p>' +
+        esc(tip) +
+        "</p></div>"
+      : "";
+
+    return (
+      '<section class="tv-day-page">' +
+      '<header class="tv-day-ribbon">' +
+      '<span class="tv-day-num">DAY ' +
+      d.day +
+      "</span>" +
+      '<h3 class="tv-day-theme">' +
+      esc(theme) +
+      "</h3>" +
+      (tip ? '<p class="tv-day-tip">' + esc(tip) + "</p>" : "") +
+      itinHtml +
+      "</header>" +
+      '<div class="tv-slots">' +
+      slotsHtml +
+      "</div>" +
+      '<footer class="tv-day-foot">' +
+      '<div class="tv-day-foot-main">' +
+      '<div class="tv-day-foot-h">今日行程小结</div>' +
+      '<div class="tv-flow">' +
+      flowHtml +
+      "</div></div>" +
+      tipsHtml +
+      "</footer></section>"
+    );
+  }
+
+  function openPlan() {
+    const stops = selectedStops();
+    if (!stops.length) {
+      openTvDrawer("还不能生成", "", "<p class=\"tv-hint\">请至少勾选一个「想去此地」的地点。</p>");
+      return;
+    }
+    const ordered = orderStops(stops);
+    const dayInfo = estimateDays(ordered);
+    const dayPlan = buildDayPlan(ordered, dayInfo);
+    const { total, lines } = calcTotal();
+    const dest = (D.meta && (D.meta.title || D.meta.enTitle)) || "我的行程";
+
+    const sDetail = document.getElementById("scene-detail");
+    const sHome = document.getElementById("scene-home");
+    const sPlan = document.getElementById("scene-plan");
+    if (sDetail) sDetail.classList.remove("active");
+    if (sHome) {
+      sHome.classList.remove("active");
+      sHome.classList.add("zoomed-out");
+    }
+    sPlan.classList.add("active");
+    document.body.classList.add("tv-plan-open");
+
+    const navHtml = dayPlan
+      .map(
+        (d, idx) =>
+          '<button type="button" class="tv-nav-day' +
+          (idx === 0 ? " on" : "") +
+          '" data-day="' +
+          d.day +
+          '">D' +
+          d.day +
+          "</button>"
+      )
+      .join("");
+
+    let daysHtml = "";
+    dayPlan.forEach((d, idx) => {
+      daysHtml +=
+        '<div class="tv-day-pane' +
+        (idx === 0 ? " on" : "") +
+        '" id="tvDay' +
+        d.day +
+        '" data-day="' +
+        d.day +
+        '">' +
+        dayPageHtml(d) +
+        "</div>";
+    });
+
+    // packing peek
+    const bag = {};
+    selectedStops().forEach(({ c, i }) => {
+      (c.packing || []).forEach((name, j) => {
+        if (!pick[i].pack[j]) return;
+        const key = typeof name === "string" ? name : name.name;
+        bag[key] = true;
+      });
+    });
+    const packKeys = Object.keys(bag).slice(0, 8);
+    const packHtml = packKeys.length
+      ? '<div class="tv-pack-peek">' +
+        packKeys.map((k) => '<span class="tv-chip">' + esc(k) + "</span>").join("") +
+        (Object.keys(bag).length > 8
+          ? '<span class="tv-chip muted">+' +
+            (Object.keys(bag).length - 8) +
+            "</span>"
+          : "") +
+        "</div>"
+      : "";
+
+    const routeImg =
+      (D.overview && (D.overview.routeImage || D.overview.routeMap)) || "";
+    const mapSrc = routeImg || (D.overview && D.overview.image) || "";
+
+    const inner = document.getElementById("tvPlanInner");
+    inner.innerHTML =
+      '<div class="tv-guide">' +
+      '<header class="tv-cover">' +
+      '<span class="tv-cover-tag">YOUR TRIP · 图示攻略</span>' +
+      "<h2>" +
+      esc(dest) +
+      "</h2>" +
+      '<p class="tv-cover-sub">专属 ' +
+      esc(dayInfo.label) +
+      " · " +
+      ordered.length +
+      " 站动线 · 预算约 " +
+      yen(total) +
+      "</p>" +
+      '<div class="tv-cover-stats">' +
+      '<div class="tv-stat"><b>' +
+      dayInfo.days +
+      "</b><span>天</span></div>" +
+      '<div class="tv-stat"><b>' +
+      dayInfo.nights +
+      "</b><span>晚</span></div>" +
+      '<div class="tv-stat"><b>' +
+      ordered.length +
+      "</b><span>站</span></div>" +
+      '<div class="tv-stat accent"><b>' +
+      yen(total) +
+      "</b><span>预算</span></div>" +
+      "</div></header>" +
+      '<section class="tv-map-wrap' +
+      (routeImg ? " baked" : "") +
+      '">' +
+      '<div class="tv-sec-h"><span>总览路线</span><em>' +
+      (routeImg ? "路线已绘入地图" : "按推荐顺序连线") +
+      "</em></div>" +
+      '<div class="tv-map-stage" id="tvMapStage">' +
+      '<img class="tv-map-img" id="tvMapImg" alt="route map">' +
+      '<svg class="tv-route" id="tvRouteSvg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>' +
+      '<div class="tv-map-pins" id="tvMapPins"></div></div>' +
+      '<div class="tv-map-legend" id="tvMapLegend"></div></section>' +
+      '<nav class="tv-day-nav" id="tvDayNav" aria-label="按日切换">' +
+      navHtml +
+      "</nav>" +
+      '<div class="tv-days" id="tvDays">' +
+      daysHtml +
+      "</div>" +
+      '<section class="tv-guide-end">' +
+      '<div class="tv-sec-h"><span>花费与行李</span><em>勾选项目汇总</em></div>' +
+      '<div class="tv-end-grid">' +
+      '<div class="tv-end-card"><div class="tv-bh">预算合计</div>' +
+      '<div class="tv-sum"><b>' +
+      yen(total) +
+      "</b></div>" +
+      '<p class="tv-hint">' +
+      lines.length +
+      " 个已选项目 · 可点右上💰看明细</p></div>" +
+      '<div class="tv-end-card"><div class="tv-bh">行李速览</div>' +
+      (packHtml || '<p class="tv-hint">暂无行李项，点左上🧳汇总</p>') +
+      "</div></div>" +
+      '<p class="tv-guide-sign">慢悠悠晃着吃逛 · 不必赶行程</p>' +
+      "</section></div>";
+
+    const img = document.getElementById("tvMapImg");
+    img.src = mapSrc;
+    // 已绘入路线的地图：只保留图例，不再叠 SVG 连线 / 数字钉
+    const paintOverlay = !routeImg;
+    img.onload = () => drawRoute(ordered, { overlay: paintOverlay });
+    if (img.complete) drawRoute(ordered, { overlay: paintOverlay });
+
+    // 按日切换：一次只显示一天
+    const showDay = (day) => {
+      inner.querySelectorAll(".tv-nav-day").forEach((btn) => {
+        btn.classList.toggle("on", String(btn.dataset.day) === String(day));
+      });
+      inner.querySelectorAll(".tv-day-pane").forEach((pane) => {
+        pane.classList.toggle("on", String(pane.dataset.day) === String(day));
+      });
+      const nav = document.getElementById("tvDayNav");
+      if (nav) {
+        const scroll = document.querySelector("#scene-plan .detail-scroll");
+        if (scroll) {
+          const top =
+            nav.getBoundingClientRect().top -
+            scroll.getBoundingClientRect().top +
+            scroll.scrollTop -
+            8;
+          scroll.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+        }
+      }
+    };
+    inner.querySelectorAll(".tv-nav-day").forEach((btn) => {
+      btn.onclick = () => showDay(btn.dataset.day);
+    });
+  }
+
+  function smoothPath(pts) {
+    if (!pts.length) return "";
+    if (pts.length === 1) return "M " + pts[0][0] + " " + pts[0][1];
+    if (pts.length === 2) {
+      return (
+        "M " +
+        pts[0][0] +
+        " " +
+        pts[0][1] +
+        " L " +
+        pts[1][0] +
+        " " +
+        pts[1][1]
+      );
+    }
+    // Catmull-Rom → cubic Bezier（沿途顺序平滑，不往地图中心乱折）
+    let d = "M " + pts[0][0] + " " + pts[0][1];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[Math.max(0, i - 1)];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[Math.min(pts.length - 1, i + 2)];
+      const cp1x = p1[0] + (p2[0] - p0[0]) / 6;
+      const cp1y = p1[1] + (p2[1] - p0[1]) / 6;
+      const cp2x = p2[0] - (p3[0] - p1[0]) / 6;
+      const cp2y = p2[1] - (p3[1] - p1[1]) / 6;
+      d +=
+        " C " +
+        cp1x +
+        " " +
+        cp1y +
+        " " +
+        cp2x +
+        " " +
+        cp2y +
+        " " +
+        p2[0] +
+        " " +
+        p2[1];
+    }
+    return d;
+  }
+
+  function drawRoute(ordered, opts) {
+    const svg = document.getElementById("tvRouteSvg");
+    const pins = document.getElementById("tvMapPins");
+    const legend = document.getElementById("tvMapLegend");
+    if (!svg || !pins) return;
+    pins.innerHTML = "";
+    svg.innerHTML = "";
+    if (legend) legend.innerHTML = "";
+
+    const overlay = !opts || opts.overlay !== false;
+
+    ordered.forEach(({ c }, n) => {
+      if (overlay) {
+        const p = document.createElement("div");
+        p.className = "tv-map-pin";
+        p.style.left = (c.x || 50) + "%";
+        p.style.top = (c.y || 50) + "%";
+        p.innerHTML = '<span class="tv-map-num">' + (n + 1) + "</span>";
+        pins.appendChild(p);
+      }
+      if (legend) {
+        legend.innerHTML +=
+          '<span class="tv-leg-item"><i>' +
+          (n + 1) +
+          "</i>" +
+          esc(c.label || c.name) +
+          "</span>";
+      }
+    });
+
+    if (!overlay) return;
+
+    const pts = ordered.map(({ c }) => [
+      Number(c.x) || 50,
+      Number(c.y) || 50,
+    ]);
+    const d = smoothPath(pts);
+    svg.innerHTML =
+      '<defs><marker id="tvArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">' +
+      '<path d="M 1 1 L 9 5 L 1 9 z" fill="var(--accent)" opacity=".85"/></marker></defs>' +
+      (d
+        ? '<path class="tv-route-soft" d="' +
+          d +
+          '" fill="none"/>' +
+          '<path class="tv-route-line" d="' +
+          d +
+          '" fill="none" marker-end="url(#tvArrow)"/>'
+        : "");
+  }
+
+  // ---- hook openDetail ----
+  const _open = window.openDetail;
+  window.openDetail = function (i) {
+    if (typeof _open === "function") _open(i);
+    setTimeout(() => renderTravelPanel(i), 0);
+  };
+
+  ensureChrome();
+  refreshCash();
+  document.body.classList.add("travel-mode");
+})();
+
+</script>
+</body>
+</html>

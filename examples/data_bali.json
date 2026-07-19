@@ -1,0 +1,1099 @@
+{
+  "meta": {
+    "title": "巴厘岛保姆级自由行",
+    "enTitle": "Bali Non-Rushed Travel Guide",
+    "subtitle": "拒绝特种兵式折腾 · 5 大区域动线全攻略 · 直接照抄",
+    "theme": "travel",
+    "hint": "点地图看各地；勾选美食住宿算花费；右上💰左上🧳；逛完生成专属攻略",
+    "footer": "先落地泗水玩火山，再飞巴厘岛：南部玩海、乌布人文、仓谷活力、罗威纳追海豚",
+    "sourceVideo": {
+      "title": "巴厘岛自由行保姆级超长攻略（抖音 @Manta丨印尼奢华游）",
+      "url": "https://bytedance.larkoffice.com/minutes/obcnvwejf4i6j791i73qishs",
+      "duration": "01:56",
+      "author": "Manta丨印尼奢华游"
+    }
+  },
+  "overview": {
+    "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/dcdc275a760745d7b054e8b9b3a13572.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784973600&x-orig-sign=UO%2BWLprSc0FBMGRQlZoMQibijjo%3D",
+    "factsTitle": "TRIP · 行程档案",
+    "factsSide": "left",
+    "facts": [
+      {
+        "k": "行程风格",
+        "v": "非特种兵 · 慢玩"
+      },
+      {
+        "k": "核心区域",
+        "v": "5 站"
+      },
+      {
+        "k": "建议天数",
+        "v": "8–10 天"
+      },
+      {
+        "k": "泗水→巴厘",
+        "v": "飞行约 1 小时"
+      },
+      {
+        "k": "南部→罗威纳",
+        "v": "车程约 3 小时"
+      },
+      {
+        "k": "适合",
+        "v": "海景 · 人文 · 活力"
+      }
+    ],
+    "widget": {
+      "type": "route",
+      "title": "规划我的巴厘岛路线",
+      "subtitle": "勾选你想去的区域，一键生成带停留时长与转场的专属动线",
+      "button": "规划我的路线",
+      "stops": [
+        {
+          "name": "泗水 · 火山站",
+          "tag": "STOP 1",
+          "stay": "2 天",
+          "tip": "看 Bromo / 伊真火山，别在巴厘本岛找火山",
+          "moveNext": "飞行约 1 小时 → 巴厘岛南部"
+        },
+        {
+          "name": "南部 · 玩海站",
+          "tag": "STOP 2",
+          "stay": "2–3 天",
+          "tip": "住努沙杜瓦/乌鲁瓦图，看日落冲浪跳岛",
+          "moveNext": "车程约 1 小时 → 乌布"
+        },
+        {
+          "name": "乌布 · 人文站",
+          "tag": "STOP 3",
+          "stay": "2–3 天",
+          "tip": "丛林秋千、梯田、阿勇河漂流",
+          "moveNext": "车程约 40 分钟 → 仓谷"
+        },
+        {
+          "name": "仓谷 · 活力站",
+          "tag": "STOP 4",
+          "stay": "1–2 天",
+          "tip": "club、健身、白人饭与咖啡",
+          "moveNext": "车程约 3 小时 → 罗威纳（建议直接北上）"
+        },
+        {
+          "name": "罗威纳 · 海豚站",
+          "tag": "STOP 5",
+          "stay": "1 晚",
+          "tip": "住海边找船家，次日出海追海豚",
+          "moveNext": "返回南部转机（如去科莫多）"
+        },
+        {
+          "name": "科莫多 · 粉红沙滩",
+          "tag": "OPTION",
+          "stay": "1–2 天",
+          "tip": "进阶延伸，需从南部飞，无直达",
+          "moveNext": ""
+        }
+      ]
+    },
+    "routeImage": "media/bali/bali-route-map.png",
+    "packSuitcase": "media/bali/pack/suitcase.png",
+    "packIconBase": "media/bali/pack/"
+  },
+  "cards": [
+    {
+      "x": 22,
+      "y": 20,
+      "label": "泗水 · 火山站",
+      "tag": "STOP 1 · 火山",
+      "name": "泗水 Bromo / 伊真火山",
+      "en": "Surabaya · Volcanoes",
+      "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/dcdc275a760745d7b054e8b9b3a13572.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784973600&x-orig-sign=UO%2BWLprSc0FBMGRQlZoMQibijjo%3D",
+      "desc": "想看火山，一定要落地泗水——最出名的 Bromo 火山和伊真火山都在泗水，而不是巴厘岛本岛。火山行程结束后再飞巴厘岛，约 1 小时，千万别把两地弄混。",
+      "meta": [
+        [
+          "必看",
+          "Bromo · 伊真火山"
+        ],
+        [
+          "注意",
+          "不在巴厘本岛"
+        ],
+        [
+          "衔接",
+          "飞巴厘约 1 小时"
+        ],
+        [
+          "定位",
+          "行程第一站"
+        ]
+      ],
+      "note": "先泗水后巴厘，动线别搞反",
+      "clip": {
+        "start": "00:00",
+        "end": "00:42"
+      },
+      "annotations": [
+        {
+          "t": "Bromo 火山口",
+          "d": "凌晨吉普车上观景台，看云海日出",
+          "ax": 40,
+          "ay": 30,
+          "side": "left"
+        },
+        {
+          "t": "伊真蓝火",
+          "d": "夜爬看蓝色硫磺火焰，需防毒面具",
+          "ax": 66,
+          "ay": 40,
+          "side": "right"
+        },
+        {
+          "t": "接驳飞巴厘",
+          "d": "火山玩完再飞巴厘岛，约 1 小时",
+          "ax": 50,
+          "ay": 78,
+          "side": "left"
+        }
+      ],
+      "body": [
+        {
+          "h": "为什么第一站是泗水",
+          "type": "para",
+          "text": [
+            "很多人以为火山在巴厘岛本岛，其实印尼最出名的 Bromo 火山与伊真火山都在东爪哇的泗水一带。正确顺序是：先飞泗水看火山，玩完再飞巴厘岛，中间航程约 1 小时。",
+            "把顺序搞反会来回折返，浪费一整天在路上——这也是这条攻略反复强调的第一个坑。"
+          ]
+        },
+        {
+          "h": "两座火山怎么选",
+          "type": "table",
+          "rows": [
+            [
+              "Bromo 火山",
+              "看云海日出，凌晨出发，吉普车+骑马上观景台"
+            ],
+            [
+              "伊真火山",
+              "看蓝色硫磺火焰，需夜爬+防毒面具，体力要求高"
+            ],
+            [
+              "时间预算",
+              "各留 1 个整天，含往返与休整"
+            ]
+          ]
+        },
+        {
+          "h": "行前注意",
+          "type": "tips",
+          "items": [
+            "火山凌晨出发气温低，务必带冲锋衣/厚外套与手套",
+            "伊真蓝火需夜间徒步，准备头灯与结实登山鞋",
+            "硫磺气味刺鼻，敏感人群备好口罩或防毒面具",
+            "山区网络差，提前下载好离线地图与接驳信息"
+          ]
+        }
+      ],
+      "realPhotos": [
+        {
+          "url": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/7e71a1bbd9ae4288bc82f9a03c1b60b7.jpg~tplv-xobrcjvdq7-image.jpeg?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=V0dPUQtEOsd7fyRXw0SzL9rROhM%3D",
+          "cap": "视频开场 · 行程总览（00:12）"
+        },
+        {
+          "url": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/ade1af3819e64903953b0ab8a50c1420.jpg~tplv-xobrcjvdq7-image.jpeg?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=KMNxkOcxHnq69p20jm9wG2HL0Eg%3D",
+          "cap": "第一站讲解 · 泗水火山（00:25）"
+        }
+      ],
+      "daysSuggest": 2,
+      "food": [
+        {
+          "name": "泗水海鲜烧烤",
+          "budget": 90,
+          "note": "港口夜市现烤，鲜甜带炭香，落地第一顿很对味",
+          "defaultOn": true,
+          "image": "media/bali/bali-food-seafood.png"
+        },
+        {
+          "name": "印尼炒面 Mie Goreng",
+          "budget": 35,
+          "note": "街头招牌快餐，辣香耐饿，赶凌晨出发前垫肚子合适",
+          "defaultOn": true,
+          "image": "media/bali/bali-food-miegoreng.png"
+        }
+      ],
+      "stay": [
+        {
+          "name": "火山山脚民宿",
+          "budget": 280,
+          "nights": 1,
+          "note": "紧挨 Bromo 集合点，凌晨出发少折腾、能多睡一会",
+          "defaultOn": true,
+          "image": "media/bali/bali-stay-volcano.png"
+        },
+        {
+          "name": "泗水市区酒店",
+          "budget": 450,
+          "nights": 1,
+          "note": "靠近机场与城际接驳，落地首晚或返程 overnight 更省心",
+          "defaultOn": false,
+          "image": "media/bali/bali-stay-volcano.png"
+        }
+      ],
+      "play": [
+        {
+          "name": "Bromo 日出吉普车",
+          "budget": 260,
+          "note": "凌晨吉普穿沙海看日出，含接送，是火山站的核心体验",
+          "defaultOn": true,
+          "image": "media/bali/bali-play-bromo.png"
+        },
+        {
+          "name": "伊真蓝火徒步",
+          "budget": 320,
+          "note": "夜间看硫磺蓝火+日出，含向导与面具，强度比 Bromo 更高",
+          "defaultOn": false,
+          "image": "media/bali/bali-play-ijen.png"
+        }
+      ],
+      "packing": [
+        {
+          "name": "冲锋衣",
+          "note": "火山凌晨气温可到个位数，防风保暖必备"
+        },
+        {
+          "name": "手套",
+          "note": "吉普敞篷风大，握扶手时手会被冻僵"
+        },
+        {
+          "name": "头灯",
+          "note": "伊真夜间徒步山路无灯，双手要腾出来爬山"
+        },
+        {
+          "name": "防毒面具/口罩",
+          "note": "硫磺气味刺鼻，敏感人群没有口罩会很难受"
+        },
+        {
+          "name": "登山鞋",
+          "note": "沙海与碎石路湿滑，普通运动鞋容易打滑进沙"
+        },
+        {
+          "name": "现金印尼盾",
+          "note": "山区刷卡不稳，小费与小摊都要现金"
+        }
+      ],
+      "routeOrder": 1
+    },
+    {
+      "x": 50,
+      "y": 74,
+      "label": "南部 · 玩海站",
+      "tag": "STOP 2 · 海滨",
+      "name": "巴厘岛南部",
+      "en": "South Bali · Beaches",
+      "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/b416a19f417346a1a063f22e69b1d9b3.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784973600&x-orig-sign=vnbYHpJW1JY4paqTu3uYsOdXBs8%3D",
+      "desc": "机场就在南部，可住努沙杜瓦或乌鲁瓦图——五星酒店聚集区。最美海边日落、冲浪、滑翔伞、沙滩俱乐部都在这，去佩尼达岛的码头也在这。想玩海首选南部。",
+      "meta": [
+        [
+          "住宿",
+          "努沙杜瓦 / 乌鲁瓦图"
+        ],
+        [
+          "酒店",
+          "丽思卡尔顿 · 凯宾斯基"
+        ],
+        [
+          "玩法",
+          "日落 · 冲浪 · 滑翔伞"
+        ],
+        [
+          "跳岛",
+          "佩尼达岛码头"
+        ]
+      ],
+      "note": "巴厘岛的凯宾斯基和国内完全不一样",
+      "clip": {
+        "start": "00:20",
+        "end": "00:42"
+      },
+      "annotations": [
+        {
+          "t": "崖顶日落",
+          "d": "乌鲁瓦图断崖看日落与火舞",
+          "ax": 34,
+          "ay": 28,
+          "side": "left"
+        },
+        {
+          "t": "沙滩俱乐部",
+          "d": "Beach Club 泡一下午最惬意",
+          "ax": 62,
+          "ay": 46,
+          "side": "right"
+        },
+        {
+          "t": "跳岛码头",
+          "d": "南部码头坐快艇去佩尼达岛",
+          "ax": 48,
+          "ay": 80,
+          "side": "left"
+        }
+      ],
+      "body": [
+        {
+          "h": "住哪一片",
+          "type": "para",
+          "text": [
+            "巴厘岛机场就在南部，落地即达，是五星酒店最集中的区域。想省去舟车劳顿、以度假为主的，把大本营安在这里最省心。"
+          ]
+        },
+        {
+          "h": "必玩清单",
+          "type": "list",
+          "items": [
+            "乌鲁瓦图断崖看日落与凯查克火舞",
+            "海边冲浪教学，新手也能站上板",
+            "沙滩俱乐部（Beach Club）泡一下午",
+            "从南部码头坐快艇跳岛去佩尼达岛"
+          ]
+        },
+        {
+          "h": "住宿参考预算（每晚/双人）",
+          "type": "budget",
+          "cols": [
+            "档位",
+            "价格"
+          ],
+          "rows": [
+            [
+              "精品民宿",
+              "¥400"
+            ],
+            [
+              "国际五星（丽思/凯宾斯基）",
+              "¥1800"
+            ],
+            [
+              "崖顶泳池别墅",
+              "¥3500"
+            ]
+          ],
+          "total": [
+            "区间",
+            "¥400 – 3500 / 晚"
+          ]
+        },
+        {
+          "h": "行李清单",
+          "type": "checklist",
+          "items": [
+            "泳衣 x2",
+            "防晒霜 SPF50",
+            "防水手机袋",
+            "沙滩拖鞋",
+            "冲浪防磨衣",
+            "现金印尼盾"
+          ]
+        }
+      ],
+      "realPhotos": [
+        {
+          "url": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/b6edd9a39e4f4b3c9b93109787a71eff.jpg~tplv-xobrcjvdq7-image.jpeg?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=eknGtnN7m8LVz3mgZE%2FPukgxKLE%3D",
+          "cap": "南部海滨与五星酒店区（00:38）"
+        }
+      ],
+      "daysSuggest": 2.5,
+      "food": [
+        {
+          "name": "Beach Club 套餐",
+          "budget": 280,
+          "note": "躺椅+泳池+轻食一站齐，下午泡到日落最巴厘",
+          "defaultOn": true,
+          "image": "media/bali/bali-food-beachclub.png"
+        },
+        {
+          "name": "乌鲁瓦图海鲜餐",
+          "budget": 160,
+          "note": "崖顶看日落配海鲜，氛围比味道更值得专程去",
+          "defaultOn": true,
+          "image": "media/bali/bali-food-uluwatu.png"
+        }
+      ],
+      "stay": [
+        {
+          "name": "努沙杜瓦五星酒店",
+          "budget": 1800,
+          "nights": 2,
+          "note": "丽思/凯宾斯基级度假感，沙滩与泳池一步达",
+          "defaultOn": false,
+          "image": "media/bali/bali-stay-uluwatu.png"
+        },
+        {
+          "name": "乌鲁瓦图精品民宿",
+          "budget": 650,
+          "nights": 2,
+          "note": "离断崖与火舞近，看日落不用长途奔波",
+          "defaultOn": true,
+          "image": "media/bali/bali-stay-uluwatu.png"
+        }
+      ],
+      "play": [
+        {
+          "name": "乌鲁瓦图火舞门票",
+          "budget": 120,
+          "defaultOn": true,
+          "image": "media/bali/bali-play-firedance.png",
+          "note": "凯查克火舞+断崖夜景，南部最经典的夜晚节目"
+        },
+        {
+          "name": "冲浪教学 2h",
+          "budget": 350,
+          "defaultOn": false,
+          "image": "media/bali/bali-play-surf.png",
+          "note": "新手友好海滩，两小时能站起来，南部必体验"
+        },
+        {
+          "name": "佩尼达岛快艇往返",
+          "budget": 480,
+          "defaultOn": true,
+          "image": "media/bali/bali-play-penida.png",
+          "note": "从南部码头跳岛，看断崖与净海水的高效一日游"
+        }
+      ],
+      "packing": [
+        {
+          "name": "泳衣 x2",
+          "note": "Beach Club 与冲浪轮换穿，湿了还能换干的"
+        },
+        {
+          "name": "防晒霜 SPF50",
+          "note": "赤道暴晒+水面反光，不涂很容易晒伤"
+        },
+        {
+          "name": "防水手机袋",
+          "note": "冲浪/快艇浪花大，手机进水概率很高"
+        },
+        {
+          "name": "沙滩拖鞋",
+          "note": "沙地与泳池边来回走，运动鞋太热太沉"
+        },
+        {
+          "name": "墨镜",
+          "note": "崖顶与海面反光强，看日落也更舒服"
+        },
+        {
+          "name": "轻薄外套",
+          "note": "海边傍晚风大，火舞散场后会凉"
+        }
+      ],
+      "routeOrder": 2
+    },
+    {
+      "x": 52,
+      "y": 48,
+      "label": "乌布 · 人文站",
+      "tag": "STOP 3 · 人文",
+      "name": "中部 · 乌布",
+      "en": "Ubud · Culture & Jungle",
+      "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/5251449140de49fea8c06a1b151c5351.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784973600&x-orig-sign=toMY5cJqXAoOYl8J9c9x5sMfogM%3D",
+      "desc": "往北到乌布，人文艺术与热带雨林的核心：丛林秋千、瑜伽、音疗、ATV 越野、《神庙逃亡》同款梯田、鲜花 SPA、阿勇河漂流、乌布大皇宫、雷贡舞。喜欢人文与雨林感的可多住几天。",
+      "meta": [
+        [
+          "体验",
+          "丛林秋千 · 瑜伽 · 音疗"
+        ],
+        [
+          "打卡",
+          "神庙逃亡同款梯田"
+        ],
+        [
+          "项目",
+          "阿勇河漂流 · ATV"
+        ],
+        [
+          "弊端",
+          "堵车 · 无 club"
+        ]
+      ],
+      "note": "偏爱人文雨林就住乌布，爱夜店的人不适合",
+      "clip": {
+        "start": "00:42",
+        "end": "01:10"
+      },
+      "annotations": [
+        {
+          "t": "丛林秋千",
+          "d": "荡向雨林深处的经典打卡",
+          "ax": 36,
+          "ay": 30,
+          "side": "left"
+        },
+        {
+          "t": "德格拉朗梯田",
+          "d": "《神庙逃亡》同款层叠梯田",
+          "ax": 64,
+          "ay": 44,
+          "side": "right"
+        },
+        {
+          "t": "阿勇河漂流",
+          "d": "漂流 + ATV，雨林里越玩越野",
+          "ax": 50,
+          "ay": 80,
+          "side": "left"
+        }
+      ],
+      "body": [
+        {
+          "h": "乌布的气质",
+          "type": "para",
+          "text": [
+            "从南部一路往北就是乌布——巴厘岛的人文艺术与热带雨林核心。这里节奏慢、绿意浓，适合喜欢发呆、瑜伽、身心疗愈的人多住几天。"
+          ]
+        },
+        {
+          "h": "招牌体验",
+          "type": "list",
+          "items": [
+            "丛林秋千：荡向雨林深处的经典打卡",
+            "《神庙逃亡》同款德格拉朗梯田",
+            "阿勇河漂流 + ATV 越野越玩越野",
+            "鲜花 SPA、瑜伽与音疗（Sound Healing）",
+            "乌布大皇宫看雷贡舞演出"
+          ]
+        },
+        {
+          "h": "客观弊端",
+          "type": "tips",
+          "items": [
+            "区域内非常堵车，行程别排太满",
+            "几乎没有 club 与夜生活，蹦迪人群不适合",
+            "山路较多，晕车者备好晕车药"
+          ]
+        }
+      ],
+      "realPhotos": [
+        {
+          "url": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/f89331eee02e4de4a189c27dbfeddedd.jpg~tplv-xobrcjvdq7-image.jpeg?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=9ApbbF2W0GFiDFBQSX2%2Bp5uUMEc%3D",
+          "cap": "乌布人文与雨林（00:51）"
+        },
+        {
+          "url": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/e06f3ff2bc874e8fbc1abcdf21dd58a3.jpg~tplv-xobrcjvdq7-image.jpeg?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=TM4gdMR2c3Qi7GqdHrzwq3fx20Y%3D",
+          "cap": "丛林秋千与梯田（01:04）"
+        }
+      ],
+      "daysSuggest": 2.5,
+      "food": [
+        {
+          "name": "乌布有机沙拉brunch",
+          "budget": 95,
+          "defaultOn": true,
+          "image": "media/bali/bali-food-salad.png",
+          "note": "雨林区健康轻食代表，蔬果新鲜、适合瑜伽后补充"
+        },
+        {
+          "name": "烤乳猪 Babi Guling",
+          "budget": 70,
+          "defaultOn": true,
+          "image": "media/bali/bali-food-babiguling.png",
+          "note": "乌布本地灵魂菜，皮脆肉嫩，来乌布必吃一回"
+        }
+      ],
+      "stay": [
+        {
+          "name": "雨林泳池别墅",
+          "budget": 1100,
+          "nights": 2,
+          "defaultOn": false,
+          "image": "media/bali/bali-stay-ubud.png",
+          "note": "绿意环绕、私密泳池，适合慢节奏发呆疗愈"
+        },
+        {
+          "name": "乌布中心精品酒店",
+          "budget": 520,
+          "nights": 2,
+          "defaultOn": true,
+          "image": "media/bali/bali-stay-ubud.png",
+          "note": "步行可达皇宫与市集，人文打卡动线更紧凑"
+        }
+      ],
+      "play": [
+        {
+          "name": "丛林秋千",
+          "budget": 220,
+          "defaultOn": true,
+          "image": "media/bali/bali-play-swing.png",
+          "note": "荡向雨林的经典打卡，乌布视觉记忆点"
+        },
+        {
+          "name": "阿勇河漂流",
+          "budget": 380,
+          "defaultOn": true,
+          "image": "media/bali/bali-play-raft.png",
+          "note": "雨林河道漂流，刺激但不极端，半日耗尽最合适"
+        },
+        {
+          "name": "鲜花 SPA 90min",
+          "budget": 300,
+          "defaultOn": false,
+          "image": "media/bali/bali-play-spa.png",
+          "note": "乌布疗愈名片，漂流/秋千后放松肌肉很值"
+        }
+      ],
+      "packing": [
+        {
+          "name": "驱蚊液",
+          "note": "雨林蚊虫多，傍晚梯田与别墅尤其需要"
+        },
+        {
+          "name": "运动鞋",
+          "note": "梯田石阶与漂流集合点步道湿滑，拖鞋不够稳"
+        },
+        {
+          "name": "瑜伽服",
+          "note": "乌布瑜伽/音疗课程多，速干面料最舒服"
+        },
+        {
+          "name": "薄长袖",
+          "note": "山里早晚温差大，也能防蚊防晒"
+        },
+        {
+          "name": "湿巾",
+          "note": "漂流/ATV 后一身泥水，车上擦脸擦手很方便"
+        }
+      ],
+      "routeOrder": 3
+    },
+    {
+      "x": 30,
+      "y": 60,
+      "label": "仓谷 · 活力站",
+      "tag": "STOP 4 · 活力",
+      "name": "仓谷 Canggu",
+      "en": "Canggu · Vibe & Fitness",
+      "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/5251449140de49fea8c06a1b151c5351.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784973600&x-orig-sign=toMY5cJqXAoOYl8J9c9x5sMfogM%3D",
+      "desc": "被称为'巴厘岛体校'——热门 club、青旅、健身、跑团都在这，还有漂亮的白人饭、咖啡和餐厅。喜欢年轻氛围、有活力生活方式的，就去仓谷。",
+      "meta": [
+        [
+          "氛围",
+          "年轻 · 活力"
+        ],
+        [
+          "聚集",
+          "club · 青旅"
+        ],
+        [
+          "标签",
+          "健身 · 跑团"
+        ],
+        [
+          "餐饮",
+          "白人饭 · 咖啡"
+        ]
+      ],
+      "note": "想要热闹和运动氛围，仓谷最对味",
+      "clip": {
+        "start": "01:02",
+        "end": "01:20"
+      },
+      "annotations": [
+        {
+          "t": "海边 club",
+          "d": "白天冲浪、晚上蹦迪的活力聚集地",
+          "ax": 38,
+          "ay": 30,
+          "side": "left"
+        },
+        {
+          "t": "健身跑团",
+          "d": "‘巴厘岛体校’的运动人群大本营",
+          "ax": 64,
+          "ay": 46,
+          "side": "right"
+        },
+        {
+          "t": "精品咖啡",
+          "d": "网红‘白人饭’与 brunch 餐厅密集",
+          "ax": 48,
+          "ay": 80,
+          "side": "left"
+        }
+      ],
+      "body": [
+        {
+          "h": "‘巴厘岛体校’是什么梗",
+          "type": "para",
+          "text": [
+            "仓谷被戏称为‘巴厘岛体校’：健身房、跑团、冲浪、瑜伽人群高度聚集，白天运动、晚上蹦迪，年轻与活力是这里的关键词。"
+          ]
+        },
+        {
+          "h": "适合与不适合",
+          "type": "table",
+          "rows": [
+            [
+              "适合",
+              "爱夜生活、健身、社交与咖啡馆文化的人"
+            ],
+            [
+              "不适合",
+              "想要极致安静度假或带娃养老式旅行"
+            ],
+            [
+              "餐饮",
+              "网红‘白人饭’、精品咖啡与 brunch 餐厅密集"
+            ]
+          ]
+        }
+      ],
+      "realPhotos": [
+        {
+          "url": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/475776cc61b7415394cd90b2a12750f5.jpg~tplv-xobrcjvdq7-image.jpeg?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=AMuVrD%2Fjb%2BNfNnEGlWKFR9T5lfo%3D",
+          "cap": "仓谷活力氛围（01:17）"
+        }
+      ],
+      "daysSuggest": 1.5,
+      "food": [
+        {
+          "name": "白人饭 Brunch",
+          "budget": 110,
+          "defaultOn": true,
+          "image": "media/bali/bali-food-brunch.png",
+          "note": "仓谷网红早午餐密集，摆盘好看也真好吃"
+        },
+        {
+          "name": "精品咖啡",
+          "budget": 45,
+          "defaultOn": true,
+          "image": "media/bali/bali-food-coffee.png",
+          "note": "冲浪/健身前后续命，精品豆与氛围都在线"
+        }
+      ],
+      "stay": [
+        {
+          "name": "仓谷设计青旅/酒店",
+          "budget": 380,
+          "nights": 1,
+          "defaultOn": true,
+          "image": "media/bali/bali-stay-canggu.png",
+          "note": "社交与设计感兼得，夜生活与健身动线近"
+        },
+        {
+          "name": "海边别墅",
+          "budget": 1400,
+          "nights": 1,
+          "defaultOn": false,
+          "image": "media/bali/bali-stay-canggu.png",
+          "note": "想安静一点又离沙滩近，适合小团体包栋"
+        }
+      ],
+      "play": [
+        {
+          "name": "健身房日卡",
+          "budget": 120,
+          "defaultOn": false,
+          "image": "media/bali/bali-play-club.png",
+          "note": "体验‘巴厘岛体校’氛围，跟当地跑团同频一天"
+        },
+        {
+          "name": "Club 门票+酒水",
+          "budget": 260,
+          "defaultOn": true,
+          "image": "media/bali/bali-play-club.png",
+          "note": "仓谷夜生活核心，白天冲浪晚上蹦迪的闭环"
+        }
+      ],
+      "packing": [
+        {
+          "name": "运动鞋",
+          "note": "仓谷跑团与健身房多，板鞋/帆布鞋跑不动"
+        },
+        {
+          "name": "夜店穿搭",
+          "note": "Club 着装有门槛，沙滩装进不去场"
+        },
+        {
+          "name": "充电宝",
+          "note": "白天刷社媒晚上蹦迪，耗电很快"
+        },
+        {
+          "name": "防晒帽",
+          "note": "海边骑车与 brunch 露台暴晒，帽檐比墨镜更管用"
+        }
+      ],
+      "routeOrder": 4
+    },
+    {
+      "x": 60,
+      "y": 22,
+      "label": "罗威纳 · 海豚站",
+      "tag": "STOP 5 · 海豚",
+      "name": "罗威纳 Lovina",
+      "en": "Lovina · Wild Dolphins",
+      "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/3981da3a82e948818b798945c99cc99a.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784973600&x-orig-sign=xo%2BGKowYsnnJeEvgAvMNhIpKoRM%3D",
+      "desc": "从乌布继续往北就是罗威纳——大名鼎鼎的追海豚地。建议找海边酒店住下，跟当地路边船家谈好价格，次日船长在约定地点等你。离南部车程约 3 小时，一定要住当地、别当日往返。",
+      "meta": [
+        [
+          "招牌",
+          "野生海豚观测"
+        ],
+        [
+          "距南部",
+          "车程约 3 小时"
+        ],
+        [
+          "做法",
+          "住海边 + 找船家"
+        ],
+        [
+          "提醒",
+          "不可当日往返"
+        ]
+      ],
+      "note": "直接对接路边船家，最方便也最划算",
+      "clip": {
+        "start": "01:10",
+        "end": "01:40"
+      },
+      "annotations": [
+        {
+          "t": "野生海豚群",
+          "d": "清晨出海，日出时分最活跃",
+          "ax": 40,
+          "ay": 30,
+          "side": "left"
+        },
+        {
+          "t": "路边船家",
+          "d": "傍晚谈好价格，次日约定点上船",
+          "ax": 64,
+          "ay": 46,
+          "side": "right"
+        },
+        {
+          "t": "海边酒店",
+          "d": "务必住当地一晚，别当日往返",
+          "ax": 48,
+          "ay": 80,
+          "side": "left"
+        }
+      ],
+      "body": [
+        {
+          "h": "追海豚的正确打开方式",
+          "type": "para",
+          "text": [
+            "罗威纳在巴厘岛北部，以清晨出海看野生海豚闻名。离南部车程约 3 小时，务必在当地住一晚，别妄想当天往返。"
+          ]
+        },
+        {
+          "h": "操作步骤",
+          "type": "list",
+          "items": [
+            "提前订一家海边酒店住下",
+            "傍晚跟路边本地船家谈好价格与时间",
+            "次日清晨在约定地点上船出海",
+            "日出时分海豚群最活跃，成功率最高"
+          ]
+        },
+        {
+          "h": "省钱与避坑",
+          "type": "tips",
+          "items": [
+            "直接找路边船家往往比酒店代订更划算",
+            "谈价先讲好人数、时长与是否含浮潜",
+            "海上颠簸，晕船者提前吃药并坐船中部"
+          ]
+        }
+      ],
+      "realPhotos": [
+        {
+          "url": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/29e1524c5c204f14b1800e490f74e639.jpg~tplv-xobrcjvdq7-image.jpeg?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=%2FlrKxiI0H1zkuU%2B8t5PSKe0RyHQ%3D",
+          "cap": "罗威纳追海豚（01:30）"
+        }
+      ],
+      "daysSuggest": 1,
+      "food": [
+        {
+          "name": "海边海鲜晚餐",
+          "budget": 130,
+          "defaultOn": true,
+          "image": "media/bali/bali-food-lovina.png",
+          "note": "追海豚前一夜的海边晚餐，新鲜且收工方便"
+        }
+      ],
+      "stay": [
+        {
+          "name": "罗威纳海边酒店",
+          "budget": 420,
+          "nights": 1,
+          "note": "务必住当地一晚，清晨出海才赶得上海豚活跃时段",
+          "defaultOn": true,
+          "image": "media/bali/bali-stay-lovina.png"
+        }
+      ],
+      "play": [
+        {
+          "name": "追海豚出海",
+          "budget": 180,
+          "note": "直接跟路边船家议价最划算，日出时分成功率最高",
+          "defaultOn": true,
+          "image": "media/bali/bali-play-dolphin.png"
+        }
+      ],
+      "packing": [
+        {
+          "name": "晕车药",
+          "note": "出海颠簸明显，晕船者上船前必须吃"
+        },
+        {
+          "name": "薄外套",
+          "note": "清晨海风凉，日出前后需要加一层"
+        },
+        {
+          "name": "防水袋",
+          "note": "浪花会打湿随身包，证件手机放防水袋更稳"
+        },
+        {
+          "name": "现金小额",
+          "note": "船家多收现金小费与议价，小面额更好谈"
+        }
+      ],
+      "routeOrder": 5
+    },
+    {
+      "x": 78,
+      "y": 78,
+      "label": "科莫多 · 加餐",
+      "tag": "OPTION · 延伸",
+      "name": "科莫多 · 粉红沙滩",
+      "en": "Komodo · Pink Beach",
+      "image": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/3981da3a82e948818b798945c99cc99a.png~tplv-xobrcjvdq7-image.png?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784973600&x-orig-sign=xo%2BGKowYsnnJeEvgAvMNhIpKoRM%3D",
+      "desc": "如果还想去科莫多国家公园看粉红沙滩，需要坐飞机：必须从罗威纳包车返回巴厘岛南部，再搭航班前往，暂无直达交通。属于行程的进阶延伸。",
+      "meta": [
+        [
+          "看点",
+          "粉红沙滩"
+        ],
+        [
+          "交通",
+          "需返回南部飞"
+        ],
+        [
+          "性质",
+          "进阶延伸"
+        ],
+        [
+          "提示",
+          "无直达"
+        ]
+      ],
+      "note": "时间充裕再加这一站，需绕回南部转机",
+      "clip": {
+        "start": "01:40",
+        "end": "01:56"
+      },
+      "annotations": [
+        {
+          "t": "粉红沙滩",
+          "d": "世界级景观，红珊瑚碎屑染成粉色",
+          "ax": 42,
+          "ay": 32,
+          "side": "left"
+        },
+        {
+          "t": "转机链路",
+          "d": "需从罗威纳回南部再飞，无直达",
+          "ax": 62,
+          "ay": 52,
+          "side": "right"
+        }
+      ],
+      "body": [
+        {
+          "h": "值不值得加这一站",
+          "type": "para",
+          "text": [
+            "科莫多国家公园的粉红沙滩是世界级景观，但交通成本高：必须从罗威纳包车返回南部，再搭航班前往，暂无直达。时间充裕、预算宽松再考虑。"
+          ]
+        },
+        {
+          "h": "交通链路",
+          "type": "table",
+          "rows": [
+            [
+              "第一段",
+              "罗威纳 → 南部（包车约 3 小时）"
+            ],
+            [
+              "第二段",
+              "南部机场 → 科莫多（航班）"
+            ],
+            [
+              "性质",
+              "进阶延伸，非核心必去"
+            ]
+          ]
+        }
+      ],
+      "realPhotos": [
+        {
+          "url": "https://p-mira-img-sign-sgnontt.byteintl.net/tos-mya-i-xobrcjvdq7/b62a6ff0924d43959cb38ab20d1a061e.jpg~tplv-xobrcjvdq7-image.jpeg?lk3s=3523e930&x-orig-authkey=miraorigin&x-orig-expires=1784977200&x-orig-sign=ueDJoFEwvopHw15q7uToo6emRiA%3D",
+          "cap": "结尾 · 科莫多延伸说明（01:43）"
+        }
+      ],
+      "daysSuggest": 2,
+      "goDefault": false,
+      "food": [
+        {
+          "name": "船上简餐",
+          "budget": 100,
+          "defaultOn": true,
+          "image": "media/bali/bali-food-boat.png",
+          "note": "一日游船上补给，岛上餐饮选择少，提前吃饱更安心"
+        }
+      ],
+      "stay": [
+        {
+          "name": "拉布安巴焦酒店",
+          "budget": 550,
+          "nights": 1,
+          "defaultOn": true,
+          "image": "media/bali/bali-stay-bajo.png",
+          "note": "科莫多出海门户，早班船集合点近、少赶路"
+        }
+      ],
+      "play": [
+        {
+          "name": "粉红沙滩一日游",
+          "budget": 680,
+          "defaultOn": true,
+          "image": "media/bali/bali-play-pinkbeach.png",
+          "note": "红珊瑚碎屑染成粉色，世界级沙滩，来科莫多的主因"
+        },
+        {
+          "name": "南部→科莫多机票",
+          "budget": 900,
+          "defaultOn": true,
+          "image": "media/bali/bali-play-flight.png",
+          "note": "无直达，必须回南部再飞，时间预算要单独留"
+        }
+      ],
+      "packing": [
+        {
+          "name": "浮潜鞋",
+          "note": "珊瑚与礁石扎脚，普通拖鞋不适合下水"
+        },
+        {
+          "name": "速干衣",
+          "note": "一天多次上下水，棉质衣服湿了很难干"
+        },
+        {
+          "name": "防水袋",
+          "note": "快艇浪大，证件与电子设备必须防水"
+        },
+        {
+          "name": "护照复印件",
+          "note": "进国家公园与岛上检查常要证件，复印件备用更稳"
+        }
+      ],
+      "routeOrder": 6
+    }
+  ]
+}
