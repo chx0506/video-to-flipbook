@@ -7,38 +7,53 @@ art_recipe.py —— Flipbook 出图配方(固化的美术风格)
 核心思想:调用方只描述「画什么主体」(subject),
 风格骨架 + 硬约束由本模块自动包装,保证所有图风格统一、且绝不出现文字乱码。
 
-美术方法论(锁定):
-  手绘水彩线稿 + 莫兰迪低饱和 + 米色纸底 + 留白居中构图 + 图内零文字。
+美术方法论(锁定 · VERSO APP 对齐):
+  手绘水彩线稿 + 冷雾银蓝纸底 + 海军蓝墨线 + 留白居中构图 + 图内零文字。
+  封面进入藏书阁时与 APP Cold Luxury 不违和；忌暖米黄 / 紫粉莫兰迪奶油纸。
 """
 
 # ===== 1) 通用风格骨架:所有主题共享的"高级感"来源 =====
 STYLE_BASE = (
     "hand-drawn illustration, fine ink line-art with soft watercolor wash, "
-    "clean cream paper background, elegant textbook / travel-guidebook aesthetic, "
+    "cool silver-mist paper background (pale blue-grey #eef3f8, NOT warm cream or beige), "
+    "navy ink accents, premium guidebook aesthetic matching a navy-and-cream mascot brand, "
     "centered composition with generous margins"
 )
 
 # ===== 2) 硬约束:决定"不翻车"的关键 —— 图内零文字 =====
 HARD_CONSTRAINTS = (
-    "NO text, NO labels, NO words, NO numbers, NO captions, NO watermark anywhere in the image"
+    "NO text, NO labels, NO words, NO numbers, NO captions, NO watermark anywhere in the image, "
+    "NO pink or peach gradients, NO warm beige paper"
 )
 
 # ===== 3) 主题调色板 & 视角:与模板 CSS 的四套主题一一对应 =====
 THEME_PRESETS = {
     "travel": {
-        "palette": "muted earth-tone palette, sage green, warm tan, soft blue sea",
+        "palette": (
+            "cold luxury palette: deep navy (#1f3a4a), soft ice blue, silver mist, "
+            "cool sea teal, muted sage — avoid terracotta, cream, and pink"
+        ),
         "view": "bird's-eye isometric-leaning aerial view",
     },
     "building": {
-        "palette": "muted palette of warm brown, tan, sage green and soft grey",
+        "palette": (
+            "cool architectural palette: steel navy, slate grey, soft mist blue, "
+            "bone-white stone — avoid warm brown and tan paper"
+        ),
         "view": "architectural isometric-leaning perspective",
     },
     "art": {
-        "palette": "soft muted palette with dusty purple, mauve and warm neutrals",
+        "palette": (
+            "soft gallery palette: mist blue, cool grey, navy ink, pale silver — "
+            "avoid dusty purple, mauve, and warm neutrals"
+        ),
         "view": "elegant frontal or gallery perspective",
     },
     "dark": {
-        "palette": "moody muted palette, deep teal and warm amber accents on dark ground",
+        "palette": (
+            "moody cold palette: deep navy ground, ice-blue highlights, charcoal mist — "
+            "avoid warm amber and gold accents"
+        ),
         "view": "dramatic low-key perspective",
     },
 }

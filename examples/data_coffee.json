@@ -6,6 +6,11 @@
     "theme": "building",
     "hint": "点击器具光点看每一步要点，详情内可调人数算配比",
     "footer": "好咖啡不靠贵设备，靠稳定的手法与耐心",
+    "actionList": {
+      "category": "recipe",
+      "titleHint": "采购清单",
+      "compileFrom": "user-selection"
+    },
     "sourceVideo": {
       "title": "手冲咖啡新手教程",
       "url": "https://www.example-video.com/watch?v=pourover",
@@ -42,7 +47,7 @@
     {
       "x": 28, "y": 40, "label": "研磨 · 定粗细",
       "tag": "STEP 1 · 研磨", "name": "研磨：先定粗细", "en": "Grind",
-      "imagePrompt": "a hand grinder pouring freshly ground coffee onto a small scale, medium-fine grounds like fine sand, warm morning light",
+      "imagePrompt": "a hand grinder pouring freshly ground coffee onto a small scale, medium-fine grounds like fine sand, soft cool daylight on silver-mist paper, navy ink accents",
       "desc": "现磨现冲最香。手冲用中细研磨，颗粒像细砂糖。太细会堵、发苦；太粗则寡淡不出味。",
       "meta": [["研磨度","中细"],["手感","砂糖感"],["原则","现磨现冲"]],
       "note": "先固定研磨，再调其它变量",

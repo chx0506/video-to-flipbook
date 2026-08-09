@@ -431,6 +431,16 @@
   // ---- chrome ----
   function ensureChrome() {
     if (document.getElementById("travelChrome")) return;
+    if (!document.getElementById("tv-action-cta-style")) {
+      const st = document.createElement("style");
+      st.id = "tv-action-cta-style";
+      st.textContent =
+        ".tv-action-cta{margin:22px 0 40px;padding:0 4px}" +
+        ".tv-action-cta-inner{background:color-mix(in srgb,var(--paper) 55%,#fff);border:1.5px solid var(--line);border-radius:16px;padding:16px 18px}" +
+        ".tv-action-btn{display:block;width:100%;margin-top:12px;border:0;border-radius:14px;padding:14px;background:var(--ink);color:var(--paper);font:700 14px inherit;cursor:pointer}" +
+        ".tv-action-sub{font-size:12px;color:var(--muted);margin-top:8px;text-align:center}";
+      document.head.appendChild(st);
+    }
     const bar = document.createElement("div");
     bar.id = "travelChrome";
     bar.innerHTML =
@@ -1198,7 +1208,135 @@
     inner.querySelectorAll(".tv-nav-day").forEach((btn) => {
       btn.onclick = () => showDay(btn.dataset.day);
     });
+
+    // 攻略生成后：根据勾选编译「行李/待办清单」（不是页上写死的）
+    appendPlanActionCta(ordered, dayInfo, total);
   }
+
+  /** 从用户勾选状态编译个性化行动清单 */
+  function collectPersonalizedActionList() {
+    const stops = selectedStops();
+    if (!stops.length) return null;
+
+    const ordered = orderStops(stops);
+    const dayInfo = estimateDays(ordered);
+    const { total } = calcTotal();
+    const dest = (D.meta && (D.meta.title || D.meta.enTitle)) || "我的行程";
+    const items = [];
+    const seen = new Set();
+    const push = (text, tag) => {
+      const t = String(text || "").trim();
+      if (!t || seen.has(t)) return;
+      seen.add(t);
+      items.push({ text: t, tag: tag || "行动", done: false });
+    };
+
+    push(
+      "确认行程：" +
+        ordered.map(({ c }) => c.name || c.label).join(" → ") +
+        "（" +
+        dayInfo.label +
+        "）",
+      "行程"
+    );
+
+    ordered.forEach(({ c, i }) => {
+      (c.stay || []).forEach((it, j) => {
+        if (!pick[i].stay[j]) return;
+        const nights = it.nights != null ? it.nights + "晚 · " : "";
+        push(
+          "预订：" +
+            (c.name || c.label) +
+            " · " +
+            it.name +
+            (nights ? "（" + nights.trim() + "）" : ""),
+          "预订"
+        );
+      });
+    });
+
+    ordered.forEach(({ c, i }) => {
+      (c.food || []).forEach((it, j) => {
+        if (!pick[i].food[j]) return;
+        push("打卡美食：" + it.name + " @ " + (c.name || c.label), "美食");
+      });
+      (c.play || []).forEach((it, j) => {
+        if (!pick[i].play[j]) return;
+        push("体验：" + it.name + " @ " + (c.name || c.label), "游玩");
+      });
+    });
+
+    // 行李：只收「想去站点」且勾选中的装箱项
+    ordered.forEach(({ c, i }) => {
+      (c.packing || []).forEach((raw, j) => {
+        if (!pick[i].pack[j]) return;
+        const name = typeof raw === "string" ? raw : raw && raw.name;
+        const note = typeof raw === "object" && raw ? raw.note : "";
+        if (!name) return;
+        push(note ? "装箱：" + name + "（" + note + "）" : "装箱：" + name, "行李");
+      });
+    });
+
+    if (total > 0) {
+      push("按预算约 " + yen(total) + " 准备现金/换汇", "出行");
+    }
+
+    if (items.length < 2) return null;
+
+    return {
+      title: dest.replace(/保姆级|自由行/g, "").trim() + " · 行李与待办清单",
+      subtitle:
+        dayInfo.label +
+        " · " +
+        ordered.length +
+        " 站 · 根据你勾选的地点/住宿/行李生成",
+      category: "travel",
+      personalized: true,
+      sourcePage: D.meta && D.meta.title,
+      items,
+    };
+  }
+
+  function appendPlanActionCta(ordered, dayInfo, total) {
+    const inner = document.getElementById("tvPlanInner");
+    if (!inner || document.getElementById("tvActionCta")) return;
+    const wrap = document.createElement("section");
+    wrap.id = "tvActionCta";
+    wrap.className = "tv-action-cta";
+    wrap.innerHTML =
+      '<div class="tv-action-cta-inner">' +
+      '<div class="tv-sec-h"><span>下一步：行动清单</span><em>由你的勾选实时编译</em></div>' +
+      "<p class=\"tv-hint\">攻略看完还不够——把「要订的房、要装的行李、要点的美食」收成一张可打勾的小票，马上行动。</p>" +
+      '<button type="button" class="tv-action-btn" id="tvGenActionList">生成我的行李 / 待办清单</button>' +
+      '<div class="tv-action-sub" id="tvActionSub">将汇总：' +
+      ordered.length +
+      " 站 · " +
+      dayInfo.label +
+      (total ? " · 预算约 " + yen(total) : "") +
+      "</div></div>";
+    inner.appendChild(wrap);
+    document.getElementById("tvGenActionList").onclick = () => {
+      const list = collectPersonalizedActionList();
+      if (!list) {
+        openTvDrawer(
+          "还不能生成清单",
+          "",
+          '<p class="tv-hint">请先勾选「想去此地」、住宿或行李项，再生成。</p>'
+        );
+        return;
+      }
+      if (typeof window.__huozhongUnlockActionList === "function") {
+        window.__huozhongUnlockActionList(list, { open: true });
+      } else if (typeof window.__huozhongSetActionList === "function") {
+        window.__huozhongSetActionList(list);
+      }
+    };
+  }
+
+  // 注册交互收集器：行动清单运行时优先用勾选结果，不用写死文案
+  window.__huozhongInteractionCollectors =
+    window.__huozhongInteractionCollectors || [];
+  window.__huozhongInteractionCollectors.push(collectPersonalizedActionList);
 
   function smoothPath(pts) {
     if (!pts.length) return "";

@@ -16,7 +16,7 @@ end-to-end. Reference implementation: `examples/data_bali.json` +
 | 6 | Plan is **illustrated**: day tabs (one day at a time), 行程线, AM/PM/evening slots |
 | 7 | Route map prefers `overview.routeImage` (route **drawn into** comic); no「规划我的路线」CTA |
 | 8 | Plan art = **comic only** (no video-frame JPG mix); captions **below** images; no「今日图鉴」 |
-| 9 | Style = house ink/watercolor Morandi — layout may echo Xiaohongshu guides, **not** Q-cartoon |
+| 9 | Style = house ink/watercolor on cool silver-mist + navy (VERSO) — layout may echo Xiaohongshu guides, **not** Q-cartoon |
 
 ## 1. Data requirements
 
@@ -38,7 +38,7 @@ Set `meta.theme` to `"travel"`. For **every place card** author:
 
 Each **defaultOn** (and preferably every) food / stay / play item **must** have
 an `image` that is a **house-style comic illustration** (ink + watercolor,
-Morandi, cream paper, **no text in the image** — same as `art_recipe.py`).
+cool silver-mist paper + navy ink, **no text in the image** — same as `art_recipe.py`).
 
 Every food / stay / play / packing row on the **place detail panel** shows:
 checkbox · **thumbnail** · name(+budget) · **小字 `note`** (specialty / why recommend /
@@ -73,7 +73,7 @@ timeline / other widget buttons if needed.
 
 ### Personalized plan layout（图示攻略）
 
-Keep **house ink/paper style** (Songti, paper colors, dashed lines). Layout
+Keep **house ink / silver-mist style** (Noto Sans UI chrome, navy accents, dashed ice-blue leaders). Layout
 structure may learn from Xiaohongshu visual itineraries; **do not** switch to
 cute Q-version / sticker cartoon hand-drawn.
 

@@ -4,9 +4,23 @@ One `data_<name>.json` per page. `build.py` validates it, then injects it into t
 template. Required top-level keys: `meta`, `overview`, `cards`. Required in `meta`:
 `title`. Each card requires `x`, `y`, `label`.
 
+> **产品：** 每页须对应具体场景（`meta.task` / `subtitle`）+ 交互后编译清单（`product.md`）。
+> **品类：** `content-categories.md` · **清单：** `action-list.md`（勿在 JSON 写死 `items[]`）。
+
 The overview illustration and each card's detail illustration can either carry a
 ready `image` URL, or an `imagePrompt` (subject only) that the two-phase handshake
 turns into a generated image. See SKILL.md Step 2.
+
+## Input mode (analyze layer)
+
+Both modes produce **this same schema**. Only provenance fields differ.
+
+| `meta.inputMode` | Provenance fields | See |
+|------------------|-------------------|-----|
+| `"single"` (default if omitted) | `meta.sourceVideo` (+ optional card `clip`) | SKILL Mode A |
+| `"multi"` | `meta.sources[]` (≥2), optional `task` / `keyFinding` / `relations`; cards set `sourceId` + `clip` | `references/multi-video.md` |
+
+Legacy pages with only `sourceVideo` remain valid Mode A.
 
 ## Full structure
 
@@ -19,7 +33,42 @@ turns into a generated image. See SKILL.md Step 2.
     "theme":    "travel | building | art | dark",   // drives palette + art view
     "hint":     "Top-right operating hint on the home page",
     "footer":   "One-line takeaway at the bottom of the home page",
-    "sourceVideo": {"title":"…","url":"…","duration":"04:20","author":"…"}
+    "inputMode": "single | multi",   // optional; default single
+
+    // 品类提示（最终 items 由交互编译，不要写死成品清单）
+    "actionList": {
+      "category": "travel | recipe | fitness | beauty | study | interview | general",
+      "titleHint": "行李与待办清单",
+      "compileFrom": "user-selection"
+    },
+
+    // Mode A — single video (legacy; still preferred for one source)
+    "sourceVideo": {
+      "title":"…","url":"…","duration":"04:20","author":"…",
+      "scope": "full-video | selected-clips",
+      "ranges": [{"start":"20:21","end":"31:52"}],
+      "restTldr": "未选中部分的一句话摘要（可选）"
+    },
+
+    // Mode B — multi-video / 灵感片段（≥2 independent parents）
+    "task": "用户任务一句话（多源综合时强烈建议）",
+    "keyFinding": "因多源关系才成立的关键结论（可选）",
+    "sources": [
+      {
+        "sourceId": "v_altman",
+        "title": "…",
+        "url": "…",
+        "author": "…",
+        "scope": "full-video | selected-clips",
+        "ranges": [{"start":"20:21","end":"31:52"}],
+        "note": "用户保存时的一句话",
+        "restTldr": "可选"
+      }
+    ],
+    "relations": [
+      {"type":"complement","summary":"…","sourceIds":["v_a","v_b"]}
+      // type: consensus | conflict | complement | condition | gap
+    ]
   },
 
   "overview": {
@@ -43,6 +92,7 @@ turns into a generated image. See SKILL.md Step 2.
       "desc":  "lead paragraph on the detail page",
       "meta":  [["key","value"]],  // structured info rows on the right
       "note":  "one-line tip pinned at the bottom",
+      "sourceId": "v_altman",                 // Mode B: which parent video this card cites
       "clip":  {"start":"03:12","end":"05:40"},   // source video timestamps (traceable)
 
       "annotations": [             // THE 图解 EFFECT — 3–5 per card recommended
@@ -164,10 +214,9 @@ Set on `overview.widget` (opens from a home-page button) or `cards[i].widget`.
 
 | theme    | palette                                         | default view                       |
 |----------|-------------------------------------------------|------------------------------------|
-| travel   | muted earth tones, sage, tan, soft blue sea     | bird's-eye isometric-leaning aerial|
-| building | warm brown, tan, sage, soft grey                | architectural isometric-leaning    |
-| art      | dusty purple, mauve, warm neutrals              | frontal / gallery                  |
-| dark     | deep teal + warm amber on dark ground           | dramatic low-key                   |
+| travel   | cold luxury: navy, ice blue, silver mist, cool sea | bird's-eye isometric-leaning aerial|
+| building | steel navy, slate, mist blue, bone-white stone  | architectural isometric-leaning    |
+| art      | mist blue, cool grey, navy ink, pale silver     | frontal / gallery                  |
+| dark     | deep navy ground + ice-blue highlights          | dramatic low-key                   |
 
-All themes share: hand-drawn ink line-art + soft watercolor wash, cream paper,
-centered composition with generous margins, and **no text anywhere in the image**.
+All themes share: hand-drawn ink line-art + soft watercolor wash, **cool silver-mist paper** (not warm cream), navy ink accents, centered composition with generous margins, and **no text anywhere in the image**. Covers must sit comfortably in VERSO 藏书阁 (Cold Luxury navy + mist). Prefer `thumbGrad` like `linear-gradient(160deg,#a8c4d4,#3d5a70)` when no cover image.

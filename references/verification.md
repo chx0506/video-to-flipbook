@@ -69,7 +69,7 @@ On a place card, confirm `#travelPanel` / travel rows:
 5. Food / stay / play slots use **distinct comic illustrations** — no video-frame
    JPGs mixed in (inspect `img[src]` under `.tv-day-pane.on`).
 6. Home does **not** show「规划我的路线」competing with「生成我的攻略」.
-7. Visual language stays house ink/watercolor Morandi — not Q-version cartoon.
+7. Visual language stays house ink/watercolor on **cool silver-mist paper** (VERSO Cold Luxury) — not warm cream Morandi, not Q-version cartoon.
 
 See `references/travel.md` for the full contract.
 
@@ -106,3 +106,40 @@ See `references/travel.md` for the full contract.
   comic map and skip overlay pins/lines.
 - **Luggage is a plain checklist only** → openPackDrawer should use suitcase art
   + item icons + fly animation.
+
+## Multi-video pages (`meta.inputMode: "multi"`)
+
+1. Home `#srcLine` lists **综合自 N 条灵感** (not a single「内容分析自」).
+2. Important cards have `sourceId` + `clip` ranges that match `meta.sources`.
+3. Page structure answers `meta.task` — not a concat of N video summaries.
+4. Conflicts / conditions appear as tips or tables, not silent omissions.
+5. If only one independent parent slipped in, treat as Mode A (do not claim multi).
+
+## Action list（交互后编译）
+
+> 产品原则：`huozhong/PRODUCT.md` §7 · `references/action-list.md`
+
+1. Entering the page does **not** present a ready-to-print finished checklist.
+2. After personalization（travel: 勾选 + 生成攻略；recipe: 人数 + 我已有）a
+   CTA compiles the list from selections.
+3. Changing selections changes list items（e.g. uncheck a stop → its packing goes away）.
+4. Only then：**存入 App 行动库** / **打印小票**（FAB 变「行动清单 ✓」，存/印按钮 enabled）.
+5. Parent-child vs photo trip（or other style chips）must yield different packing items.
+6. List items must be **actionable offline** — not「再看一遍视频」.
+
+## Content categories（非旅行）
+
+Per `references/content-categories.md`:
+
+| category | Verify |
+|----------|--------|
+| `recipe` | Recipe widget scales servings;「我已有」strikes items;「生成采购清单」unlocks list |
+| `fitness` | Stepper/checklist present; list only after explicit CTA + collector |
+| `beauty` / `study` / `interview` | Point-select UI exists; no static `meta.actionList.items` |
+| `general` | `meta.task` names a concrete problem; at least one selection UI |
+
+## Product page quality
+
+1. Page answers **`meta.task`** (multi) or a clear scenario in subtitle (single).
+2. Output is an **interactive application**, not a video-summary wall.
+3. Multi-source: structure changes because of dedupe/relations — not concat summaries.

@@ -6,6 +6,11 @@
     "theme": "travel",
     "hint": "点地图看各地；勾选美食住宿算花费；右上💰左上🧳；逛完生成专属攻略",
     "footer": "先落地泗水玩火山，再飞巴厘岛：南部玩海、乌布人文、仓谷活力、罗威纳追海豚",
+    "actionList": {
+      "category": "travel",
+      "titleHint": "行李与待办清单",
+      "compileFrom": "user-selection"
+    },
     "sourceVideo": {
       "title": "巴厘岛自由行保姆级超长攻略（抖音 @Manta丨印尼奢华游）",
       "url": "https://bytedance.larkoffice.com/minutes/obcnvwejf4i6j791i73qishs",

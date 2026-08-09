@@ -5,9 +5,12 @@ Flipbook 生成器雏形
 -------------------
 把「视频分析结果(JSON)」+「通用模板(HTML)」→ 成品可交互图鉴页面。
 
-数据来源:视频分析。真实链路应是:
-    下载视频 → 抽帧/转写字幕 → LLM 结构化分析 → 产出符合 SCHEMA 的 JSON
-本脚本用 analyze_video() 占位该步骤(当前直接读取预生成的分析结果 JSON)。
+数据来源 — 两种输入,同一套 JSON/HTML 输出:
+    Mode A 单视频:  1 条视频/片段 → analyze → data_*.json
+    Mode B 多视频:  N 条灵感片段(≥2 独立来源) → 去重/关系梳理 → 同一 schema
+    下游相同: art handshake → build → out_*.html
+详见 references/multi-video.md 与 SKILL.md「Input layer」。
+本脚本用 analyze_video() 占位分析步骤(当前直接读取预生成的分析结果 JSON)。
 
 用法:
     python3 build.py data_yingxian.json  -> 生成 out_yingxian.html
@@ -35,7 +38,11 @@ SCHEMA = """
     "theme":     "配色主题: travel | building | art | dark",
     "hint":      "首页右上角操作提示",
     "footer":    "首页底部一句话点题",
-    "sourceVideo": {"title":"来源视频标题","url":"视频链接","duration":"时长","author":"作者"}
+    "inputMode": "single | multi(多灵感片段综合)",
+    "sourceVideo": {"title":"来源视频标题","url":"视频链接","duration":"时长","author":"作者","scope":"full-video|selected-clips","ranges":[{"start":"mm:ss","end":"mm:ss"}],"restTldr":"未选部分摘要"},
+    "task": "多源时的用户任务",
+    "sources": [{"sourceId":"…","title":"…","url":"…","scope":"…","ranges":[],"note":"…","restTldr":"…"}],
+    "relations": [{"type":"complement","summary":"…","sourceIds":["a","b"]}]
   },
   "overview": {
     "image":       "总览大图 URL(手绘插画)。若留空并提供 imagePrompt,则由出图配方生成",
@@ -57,6 +64,7 @@ SCHEMA = """
       "desc":  "详情首段导语",
       "meta":  [["键","值"]],   # 右侧结构化信息行
       "note":  "底部一句私藏建议/要点",
+      "sourceId": "v_altman",           # Mode B: 卡片对应的父视频
       "clip":  {"start":"03:12","end":"05:40"},  # ← 对应视频重点片段时间戳(可溯源)
       "annotations": [          # 【可选,推荐】图解标注:在详情插画上叠加带引线的标签,指向画面具体部位(参考青岛栈桥/教堂图)
         {"t":"标注标题","d":"一句说明","ax":62,"ay":30,"side":"left"}
@@ -136,20 +144,24 @@ def _wants_travel_planner(data):
     return False
 
 
+def _inject_script(html, js_path):
+    if not os.path.exists(js_path):
+        return html
+    with open(js_path, "r", encoding="utf-8") as f:
+        js = f.read()
+    return html.replace("</body>", "<script>\n" + js + "\n</script>\n</body>")
+
+
 def build(data, out_path):
     with open(TEMPLATE, "r", encoding="utf-8") as f:
         tpl = f.read()
     injected = "window.FLIPBOOK = " + json.dumps(data, ensure_ascii=False, indent=2) + ";"
     html = tpl.replace(PLACEHOLDER, injected)
+    assets_dir = os.path.dirname(TEMPLATE)
     if _wants_travel_planner(data):
-        travel_js = os.path.join(os.path.dirname(TEMPLATE), "travel_planner.js")
-        if os.path.exists(travel_js):
-            with open(travel_js, "r", encoding="utf-8") as f:
-                js = f.read()
-            html = html.replace(
-                "</body>",
-                "<script>\n" + js + "\n</script>\n</body>",
-            )
+        html = _inject_script(html, os.path.join(assets_dir, "travel_planner.js"))
+    # 每页必出行动清单（存 App / 打印）
+    html = _inject_script(html, os.path.join(assets_dir, "action_list.js"))
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(html)
     return out_path
